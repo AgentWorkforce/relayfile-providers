@@ -10,11 +10,11 @@ Used with [relayfile adapters](https://github.com/AgentWorkforce/relayfile-adapt
 npm install @relayfile/sdk @relayfile/provider-nango
 ```
 
-### Getting a token
+### Getting started
 
-**Hosted (api.relayfile.dev):** Create a workspace at [relayfile.dev](https://relayfile.dev) and generate an API token from the dashboard.
+**[Relayfile Cloud](https://relayfile.dev/pricing)** handles everything — auth, webhook routing, managed connections, agent permissions. No provider setup needed; connections are managed for you under a unified plan.
 
-**Self-hosted:** Tokens are JWTs issued by [relayauth](https://github.com/AgentWorkforce/relayauth). See the [adapters README](https://github.com/AgentWorkforce/relayfile-adapters#getting-a-token) for details.
+**Self-hosted:** Run the [Go server](https://github.com/AgentWorkforce/relayfile) and configure providers yourself. See the [adapters README](https://github.com/AgentWorkforce/relayfile-adapters#getting-started) for auth setup.
 
 ### Connect a provider to relayfile
 
