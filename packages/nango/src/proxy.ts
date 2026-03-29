@@ -10,16 +10,13 @@ import type {
   ProxyResponse,
 } from "./types.js";
 
-const PROVIDER_HOSTNAME_MAP: Readonly<Record<string, string>> = {
-  "api.github.com": "github",
-  "github.com": "github",
-  "api.linear.app": "linear",
-  "linear.app": "linear",
-  "api.slack.com": "slack",
-  "slack.com": "slack",
-  "api.stripe.com": "stripe",
-  "stripe.com": "stripe",
-};
+/**
+ * Last-resort hostname overrides where the heuristic (strip common
+ * subdomains, take first label) can't derive the correct provider key.
+ * Most services (github, slack, linear, stripe) resolve correctly
+ * without entries here. Callers should pass providerConfigKey explicitly.
+ */
+const PROVIDER_HOSTNAME_OVERRIDES: Readonly<Record<string, string>> = {};
 
 const COMMON_SUBDOMAINS = new Set(["api", "app", "graph", "graphql", "rest", "services", "www"]);
 
@@ -184,9 +181,9 @@ export function deriveProviderConfigKey(baseUrl: string): string | undefined {
     return undefined;
   }
 
-  const mapped = PROVIDER_HOSTNAME_MAP[hostname];
-  if (mapped !== undefined) {
-    return mapped;
+  const override = PROVIDER_HOSTNAME_OVERRIDES[hostname];
+  if (override !== undefined) {
+    return override;
   }
 
   if (hostname.endsWith(".atlassian.net")) {
