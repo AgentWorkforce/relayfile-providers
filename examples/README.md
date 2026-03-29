@@ -44,6 +44,16 @@ const provider = new NangoProvider({
 | Supabase | Yes | No |
 | N8n | Yes | No |
 
+## Docker
+
+Run any example in a container (no local Node required):
+
+```bash
+docker run --rm --env-file .env \
+  -v "$PWD":/app -w /app node:20-slim \
+  npx tsx examples/01-nango-github-proxy/index.ts
+```
+
 ## `baseUrl` is optional
 
 All providers resolve `baseUrl` from the connection when omitted in `proxy()` calls. Override it only when targeting a non-default API host (e.g. `uploads.github.com` instead of `api.github.com`).

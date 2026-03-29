@@ -5,6 +5,7 @@
  * Useful for dashboards, monitoring, and debugging auth issues.
  */
 
+import type { ConnectionProvider } from "@relayfile/sdk";
 import {
   NangoProvider,
   getConnectionHealth,

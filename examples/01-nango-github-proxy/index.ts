@@ -7,6 +7,7 @@
  * like uploads.github.com.
  */
 
+import type { ConnectionProvider } from "@relayfile/sdk";
 import { NangoProvider } from "@relayfile/provider-nango";
 
 // ── Config ──────────────────────────────────────────────────────────

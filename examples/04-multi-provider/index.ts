@@ -5,13 +5,11 @@
  * Each provider handles its own auth; your code just calls proxy().
  */
 
+import type { ConnectionProvider } from "@relayfile/sdk";
 import { NangoProvider } from "@relayfile/provider-nango";
 import { ComposioProvider } from "@relayfile/provider-composio";
 
-// Providers that require RelayFileClient are commented out with the
-// shape you would use in production. Uncomment when you have the SDK
-// wired up:
-//
+// Providers that require RelayFileClient:
 // import { RelayFileClient } from "@relayfile/sdk";
 // import { ClerkProvider } from "@relayfile/provider-clerk";
 // import { PipedreamProvider } from "@relayfile/provider-pipedream";
@@ -46,7 +44,7 @@ async function main() {
 
   // ── Registry pattern ──────────────────────────────────────────────
   // Map provider names so you can route requests dynamically.
-  const providers: Record<string, { proxy: typeof nango.proxy }> = {
+  const providers: Record<string, ConnectionProvider> = {
     nango,
     composio,
     // clerk,

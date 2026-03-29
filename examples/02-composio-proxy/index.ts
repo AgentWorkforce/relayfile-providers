@@ -6,6 +6,7 @@
  * connected account when baseUrl is omitted.
  */
 
+import type { ConnectionProvider } from "@relayfile/sdk";
 import { ComposioProvider } from "@relayfile/provider-composio";
 
 // ── Config ──────────────────────────────────────────────────────────
