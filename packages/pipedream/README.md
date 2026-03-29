@@ -100,6 +100,10 @@ Optional:
 - `PipedreamAuthSession` caches the OAuth bearer token until shortly before expiry and coalesces concurrent refreshes into one request.
 - List endpoints expose cursor pagination via `cursor`/`before` and return normalized `pageInfo` metadata.
 
+## Reference
+
+- [PipedreamHQ/pipedream](https://github.com/PipedreamHQ/pipedream) — Pipedream's open-source repo with 1000+ pre-built integration components, event sources, and actions. Useful for discovering available apps and component IDs when invoking actions via `provider.invokeAction()`.
+
 ## Notes
 
 - Account credentials are only returned when the connected account uses your own OAuth client.
