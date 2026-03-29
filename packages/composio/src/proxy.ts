@@ -180,11 +180,13 @@ export async function lookupActionForRequest(
 ): Promise<ComposioActionLookupResult> {
   const controlHeaders = extractControlHeaders(request.headers);
 
-  // Resolve toolkit: explicit header > connected account API > hostname heuristic
+  // Resolve toolkit from the connected account first when available; it is the
+  // authoritative source for a bound Composio connection. Control headers and
+  // hostname heuristics remain as fallbacks for incomplete account data.
   const resolveToolkit = async (): Promise<string | undefined> => {
-    if (controlHeaders.toolkitSlug) return controlHeaders.toolkitSlug;
     const fromConnection = await resolveToolkitFromConnection(config, request.connectionId);
     if (fromConnection) return fromConnection;
+    if (controlHeaders.toolkitSlug) return controlHeaders.toolkitSlug;
     return request.baseUrl ? resolveToolkitSlug(request.baseUrl, config.defaultToolset) : config.defaultToolset?.slug;
   };
 
