@@ -36,7 +36,7 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@relayfile/sdk": "file:../../AgentWorkforce-relayfile/packages/sdk/typescript",
+    "@relayfile/sdk": "^0.1.6",
     "jose": "^6.2.2",
     "svix": "^1.89.0"
   },
