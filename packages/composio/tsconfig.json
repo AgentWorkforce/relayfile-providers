@@ -3,6 +3,12 @@
     "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "Node",
+    "baseUrl": ".",
+    "paths": {
+      "@relayfile/sdk": [
+        "../../../AgentWorkforce-relayfile/packages/sdk/typescript/dist/index.d.ts"
+      ]
+    },
     "lib": [
       "ES2022"
     ],

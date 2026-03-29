@@ -2,7 +2,7 @@
   "name": "relayfile-providers",
   "version": "0.1.0",
   "private": true,
-  "description": "Relayfile providers \u2014 auth and credential management for external services",
+  "description": "Relayfile providers — auth and credential management for external services",
   "workspaces": [
     "packages/*"
   ],

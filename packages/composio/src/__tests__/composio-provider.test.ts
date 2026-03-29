@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ComposioProvider } from "../composio-provider";
 import * as barrel from "../index";
-import type { ProxyRequest } from "../index";
+import type { ProxyRequest } from "@relayfile/sdk";
 
 interface FetchCall {
   input: string;

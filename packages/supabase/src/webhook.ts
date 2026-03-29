@@ -1,9 +1,5 @@
-import { WebhookNormalizationError } from "./errors.js";
 import { createHmac, timingSafeEqual } from "node:crypto";
-import {
-  type NormalizedWebhook,
-} from "@relayfile/sdk";
-import type { SupabaseWebhookPayload } from "./types.js";
+import type { SupabaseNormalizedWebhook, SupabaseWebhookPayload } from "./types.js";
 
 const DATABASE_EVENT_TYPES: Record<string, "created" | "deleted" | "updated"> = {
   delete: "deleted",
@@ -24,7 +20,7 @@ const AUTH_EVENT_TYPES: Record<string, string> = {
   "user.updated": "updated",
 };
 
-export function normalizeSupabaseWebhook(rawPayload: unknown): NormalizedWebhook {
+export function normalizeSupabaseWebhook(rawPayload: unknown): SupabaseNormalizedWebhook {
   const payload = ensureRecord(rawPayload);
   const databaseWebhook = normalizeDatabaseWebhook(payload);
   if (databaseWebhook) {
@@ -63,7 +59,7 @@ export function extractSupabaseWebhookSignature(
     ?? undefined;
 }
 
-function normalizeDatabaseWebhook(payload: SupabaseWebhookPayload): NormalizedWebhook | null {
+function normalizeDatabaseWebhook(payload: SupabaseWebhookPayload): SupabaseNormalizedWebhook | null {
   const table = typeof payload.table === "string" ? payload.table : undefined;
   const schema = typeof payload.schema === "string" ? payload.schema : undefined;
   const type = typeof payload.type === "string" ? payload.type.toLowerCase() : undefined;
@@ -85,7 +81,7 @@ function normalizeDatabaseWebhook(payload: SupabaseWebhookPayload): NormalizedWe
   };
 }
 
-function normalizeAuthWebhook(payload: SupabaseWebhookPayload): NormalizedWebhook {
+function normalizeAuthWebhook(payload: SupabaseWebhookPayload): SupabaseNormalizedWebhook {
   const eventName = readEventName(payload);
   const eventType = AUTH_EVENT_TYPES[eventName] ?? eventName.replace(/\./g, "_");
   const subject = ensureRecord(payload.user ?? payload.record ?? payload.session ?? payload.factor);
@@ -112,11 +108,7 @@ function readEventName(payload: SupabaseWebhookPayload): string {
       : undefined;
 
   if (!value || value.trim().length === 0) {
-    throw new WebhookNormalizationError(
-      "invalid_webhook",
-      "Supabase webhook is missing event or type.",
-      { value: payload },
-    );
+    throw new Error("Supabase webhook is missing event or type.");
   }
 
   return value.trim().toLowerCase();
@@ -169,7 +161,7 @@ function ensureRecord(input: unknown): Record<string, unknown> {
     return input as Record<string, unknown>;
   }
 
-  throw new WebhookNormalizationError("invalid_webhook", "Expected object payload.", { value: input });
+  throw new Error("Expected object payload.");
 }
 
 function readObjectId(input: unknown, message: string): string {
@@ -177,7 +169,7 @@ function readObjectId(input: unknown, message: string): string {
     return input;
   }
 
-  throw new WebhookNormalizationError("invalid_object_id", message, { value: input });
+  throw new Error(message);
 }
 
 function getNestedValue(input: Record<string, unknown>, path: string): unknown {

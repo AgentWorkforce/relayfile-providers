@@ -1,7 +1,8 @@
-import { computeCanonicalPath, type NormalizedWebhook } from "@relayfile/sdk";
+import { computeCanonicalPath } from "@relayfile/sdk";
 import { asObject, asOptionalString, isObject } from "./apps.js";
+import type { PipedreamNormalizedWebhook } from "./types.js";
 
-export function normalizePipedreamWebhook(rawInput: unknown): NormalizedWebhook {
+export function normalizePipedreamWebhook(rawInput: unknown): PipedreamNormalizedWebhook {
   const record = asObject(rawInput);
 
   if (isRelayfileStyleWebhook(record)) {
@@ -14,12 +15,14 @@ export function normalizePipedreamWebhook(rawInput: unknown): NormalizedWebhook 
       objectType: String(record.objectType ?? record.object_type),
       objectId: String(record.objectId ?? record.object_id),
       eventType: String(record.eventType ?? record.event_type),
-      payload:
-        isObject(record.payload) || isObject(record.data)
-          ? (record.payload ?? record.data)
+      payload: isObject(record.payload)
+        ? record.payload
+        : isObject(record.data)
+          ? record.data
           : record,
+      raw: rawInput,
       metadata: readStringMap(record.metadata),
-    } as NormalizedWebhook;
+    };
   }
 
   const event = asOptionalString(record.event) ?? asOptionalString(record.type);
@@ -38,8 +41,9 @@ export function normalizePipedreamWebhook(rawInput: unknown): NormalizedWebhook 
       objectId: accountId,
       eventType: "connected",
       payload: record,
+      raw: rawInput,
       metadata: buildMetadata(record),
-    } as NormalizedWebhook;
+    };
   }
 
   if (event === "CONNECTION_ERROR") {
@@ -51,8 +55,9 @@ export function normalizePipedreamWebhook(rawInput: unknown): NormalizedWebhook 
       objectId,
       eventType: "connection_error",
       payload: record,
+      raw: rawInput,
       metadata: buildMetadata(record),
-    } as NormalizedWebhook;
+    };
   }
 
   const objectType =
@@ -86,11 +91,12 @@ export function normalizePipedreamWebhook(rawInput: unknown): NormalizedWebhook 
     objectId,
     eventType,
     payload: record,
+    raw: rawInput,
     metadata: readStringMap(record.metadata),
-  } as NormalizedWebhook;
+  };
 }
 
-export function getWebhookPath(event: NormalizedWebhook): string {
+export function getWebhookPath(event: PipedreamNormalizedWebhook): string {
   return computeCanonicalPath(event.provider, event.objectType, event.objectId);
 }
 

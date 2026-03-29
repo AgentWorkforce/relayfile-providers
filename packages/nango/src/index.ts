@@ -53,8 +53,8 @@ export {
   refreshConnection,
   shouldAttemptTokenRefresh,
 } from "./token-refresh.js";
+export type { ConnectionProvider } from "@relayfile/sdk";
 export type {
-  ConnectionProvider,
   HeaderMap,
   HeaderValue,
   JsonArray,

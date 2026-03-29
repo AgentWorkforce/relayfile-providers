@@ -1,4 +1,8 @@
-import type { ProxyMethod } from "@relayfile/sdk";
+import type {
+  NormalizedWebhook as SdkNormalizedWebhook,
+  ProxyMethod,
+  WebhookInput,
+} from "@relayfile/sdk";
 
 export type JsonPrimitive = boolean | number | null | string;
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
@@ -51,6 +55,17 @@ export interface PipedreamConnectToken {
   connectLinkUrl: string;
   expiresAt: string;
   raw: unknown;
+}
+
+export interface PipedreamNormalizedWebhook
+  extends SdkNormalizedWebhook {
+  connectionId: string;
+  eventType: string;
+  objectType: string;
+  objectId: string;
+  payload: Record<string, unknown>;
+  raw: unknown;
+  metadata?: Record<string, string>;
 }
 
 export interface CreateConnectTokenOptions {

@@ -22,12 +22,12 @@ export {
   normalizeHeaderRecord,
   verifyClerkWebhook,
 } from "./webhook.js";
+export type { ConnectionProvider } from "@relayfile/sdk";
 
 export type {
   ClerkApiClient,
   ClerkApiRequest,
   ClerkConfig,
-  ConnectionProvider,
   ClerkDeletedObject,
   ClerkEmailAddress,
   ClerkExternalAccount,

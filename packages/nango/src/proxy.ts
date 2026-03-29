@@ -2,6 +2,7 @@ import { NangoProxyConfigError, NangoProxyTransportError } from "./errors.js";
 import { DEFAULT_NANGO_BASE_URL } from "./token-refresh.js";
 import { refreshConnection, shouldAttemptTokenRefresh } from "./token-refresh.js";
 import type {
+  JsonValue,
   NangoProviderConfig,
   NangoProxyPayload,
   NangoProxyRequestDescriptor,
@@ -37,7 +38,7 @@ export function buildNangoProxyPayload(request: ProxyRequest): NangoProxyPayload
   }
 
   if (request.body !== undefined) {
-    payload.data = request.body;
+    payload.data = request.body as JsonValue | string;
   }
 
   if (request.query !== undefined && Object.keys(request.query).length > 0) {

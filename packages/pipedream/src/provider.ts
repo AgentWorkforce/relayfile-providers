@@ -1,5 +1,6 @@
 import {
   IntegrationProvider,
+  type ConnectionProvider,
   type ProxyRequest,
   type ProxyResponse,
   type QueuedResponse,
@@ -44,6 +45,7 @@ import type {
   PipedreamListResult,
   PipedreamProjectCredentials,
   PipedreamProjectInfo,
+  PipedreamNormalizedWebhook,
   PipedreamTriggerEvent,
   PipedreamTriggerWebhook,
   PipedreamUser,
@@ -54,7 +56,7 @@ import type {
 
 type QueryValue = boolean | number | string | string[] | undefined;
 
-export class PipedreamProvider extends IntegrationProvider {
+export class PipedreamProvider extends IntegrationProvider implements ConnectionProvider {
   readonly name = "pipedream";
   readonly config: Readonly<PipedreamConfig>;
   private readonly auth: PipedreamAuthSession;
@@ -97,7 +99,7 @@ export class PipedreamProvider extends IntegrationProvider {
     return accessToken;
   }
 
-  async proxy(request: ProxyRequest): Promise<ProxyResponse> {
+  async proxy<T = unknown>(request: ProxyRequest): Promise<ProxyResponse<T>> {
     const account = await this.getAccount(request.connectionId);
     const externalUserId = await this.resolveProxyExternalUserId(request, account);
     const targetUrl = buildTargetUrl(request.baseUrl, request.endpoint);
@@ -126,7 +128,7 @@ export class PipedreamProvider extends IntegrationProvider {
     return {
       status: response.status,
       headers: toHeaderObject(response.headers),
-      data: await parseResponseBody(response),
+      data: await parseResponseBody(response) as T,
     };
   }
 
@@ -147,11 +149,8 @@ export class PipedreamProvider extends IntegrationProvider {
     const event = normalizePipedreamWebhook(rawInput);
     return this.client.ingestWebhook({
       workspaceId,
-      provider: event.provider,
-      event_type: event.eventType,
-      path: getWebhookPath(event),
-      data: event.payload,
-      signal,
+      ...toIngestWebhookInput(event, getWebhookPath(event)),
+      ...(signal ? { signal } : {}),
     });
   }
 
@@ -780,6 +779,15 @@ export class PipedreamProvider extends IntegrationProvider {
   }
 }
 
+function toIngestWebhookInput(event: PipedreamNormalizedWebhook, path: string) {
+  return {
+    provider: event.provider,
+    event_type: event.eventType,
+    path,
+    data: event.payload,
+  };
+}
+
 export class PipedreamApiError extends Error {
   constructor(
     readonly status: number,
@@ -851,9 +859,14 @@ async function parseResponseBody(response: Response): Promise<unknown> {
   return response.arrayBuffer();
 }
 
-function buildTargetUrl(baseUrl: string, endpoint: string): string {
+function buildTargetUrl(baseUrl: string | undefined, endpoint: string): string {
   if (/^https?:\/\//i.test(endpoint)) {
     return endpoint;
+  }
+  if (!baseUrl) {
+    throw new PipedreamConfigurationError(
+      "Pipedream proxy requests require baseUrl when endpoint is not absolute."
+    );
   }
   return new URL(endpoint, baseUrl).toString();
 }

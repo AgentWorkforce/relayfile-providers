@@ -4,7 +4,6 @@ import {
   IntegrationProvider,
   computeCanonicalPath,
   type ConnectionProvider,
-  type NormalizedWebhook,
   type ProxyRequest,
   type ProxyResponse,
   type QueuedResponse,
@@ -49,6 +48,7 @@ import type {
   SupabaseTransport,
   SupabaseTransportRequest,
   SupabaseTransportResponse,
+  SupabaseNormalizedWebhook,
   SupabaseUser,
   SupabaseVerifiedSession,
   UpdateUserInput,
@@ -159,7 +159,7 @@ export class SupabaseProvider
     }
   }
 
-  async handleWebhook(rawPayload: unknown): Promise<NormalizedWebhook> {
+  async handleWebhook(rawPayload: unknown): Promise<SupabaseNormalizedWebhook> {
     return normalizeSupabaseWebhook(rawPayload);
   }
 
@@ -315,6 +315,10 @@ function resolveProxyProvider(request: ProxyRequest): string {
     return explicit.trim();
   }
 
+  if (!request.baseUrl?.trim()) {
+    throw new Error("Supabase proxy requires baseUrl when no provider hint is supplied.");
+  }
+
   try {
     const host = new URL(request.baseUrl).hostname.toLowerCase();
     const candidate = HOST_PROVIDER_MAP.find((entry) => host === entry.host || host.endsWith(`.${entry.host}`));
@@ -322,7 +326,7 @@ function resolveProxyProvider(request: ProxyRequest): string {
       return candidate.provider;
     }
   } catch {
-    throw new WebhookNormalizationError("invalid_webhook", "proxy baseUrl must be a valid URL.", { value: request.baseUrl });
+    throw new Error("Supabase proxy baseUrl must be a valid URL.");
   }
 
   throw new Error("Supabase proxy requires a provider hint via x-supabase-provider or query.provider.");
@@ -375,7 +379,7 @@ function formatErrorBody(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function buildSemanticProperties(event: NormalizedWebhook): Record<string, string> {
+function buildSemanticProperties(event: SupabaseNormalizedWebhook): Record<string, string> {
   return {
     provider: event.provider,
     "provider.connection_id": event.connectionId,

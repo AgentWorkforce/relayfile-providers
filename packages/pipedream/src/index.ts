@@ -26,6 +26,7 @@ export {
   PipedreamProvider,
 } from "./provider.js";
 export { getWebhookPath, normalizePipedreamWebhook } from "./webhook.js";
+export type { ConnectionProvider, ProxyRequest, ProxyResponse } from "@relayfile/sdk";
 export type {
   CreateConnectTokenOptions,
   DeployTriggerOptions,
@@ -50,6 +51,7 @@ export type {
   PipedreamEmitter,
   PipedreamEnvironment,
   PipedreamListResult,
+  PipedreamNormalizedWebhook,
   PipedreamPageInfo,
   PipedreamProjectCredentials,
   PipedreamProjectInfo,

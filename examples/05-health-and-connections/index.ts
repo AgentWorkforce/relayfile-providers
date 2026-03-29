@@ -67,7 +67,7 @@ async function main() {
     const connections = await nango.listConnections();
     console.log(`Found ${connections.length} connection(s)`);
     for (const conn of connections) {
-      console.log(`  - ${conn.connectionId} (provider: ${conn.providerConfigKey})`);
+      console.log(`  - ${conn.connection_id} (provider: ${conn.provider_config_key})`);
     }
   } catch (err) {
     console.log("List connections failed (expected):", (err as Error).message);

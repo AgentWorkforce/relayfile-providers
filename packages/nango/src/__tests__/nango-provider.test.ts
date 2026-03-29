@@ -18,14 +18,12 @@ import {
   NangoWebhookError,
   createNangoProvider,
 } from "../index.js";
+import type { ConnectionProvider, ProxyRequest, ProxyResponse } from "@relayfile/sdk";
 import type {
-  ConnectionProvider,
   NangoConnection,
   NangoListConnectionsOptions,
   NangoProviderConfig,
   NormalizedWebhook,
-  ProxyRequest,
-  ProxyResponse,
 } from "../index.js";
 
 test("constructor applies scaffold defaults and exposes the exported provider name", () => {

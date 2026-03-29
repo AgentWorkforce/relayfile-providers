@@ -18,7 +18,7 @@
     "baseUrl": ".",
     "paths": {
       "@relayfile/sdk": [
-        "../AgentWorkforce-relayfile/packages/sdk/typescript/src/index.ts"
+        "../../../AgentWorkforce-relayfile/packages/sdk/typescript/dist/index.d.ts"
       ]
     },
     "types": [

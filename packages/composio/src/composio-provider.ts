@@ -21,6 +21,7 @@ import {
   unsubscribeTrigger,
 } from "./triggers";
 import { normalizeComposioWebhook } from "./webhook";
+import type { ConnectionProvider } from "@relayfile/sdk";
 import type {
   ComposioAction,
   ComposioActionLookupResult,
@@ -36,7 +37,6 @@ import type {
   ComposioProviderConfig,
   ComposioTrigger,
   ComposioTriggerSubscription,
-  ConnectionProvider,
   ExecuteActionOptions,
   InitiateConnectionOptions,
   JsonObject,
@@ -75,8 +75,8 @@ export class ComposioProvider implements ConnectionProvider {
     return this.config.defaultToolset;
   }
 
-  async proxy(request: ProxyRequest): Promise<ProxyResponse> {
-    return proxyThroughComposio(this.config, request);
+  async proxy<T = unknown>(request: ProxyRequest): Promise<ProxyResponse<T>> {
+    return (await proxyThroughComposio(this.config, request)) as ProxyResponse<T>;
   }
 
   async healthCheck(connectionId: string): Promise<boolean> {

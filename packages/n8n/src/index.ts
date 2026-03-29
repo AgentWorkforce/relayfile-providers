@@ -41,6 +41,7 @@ export {
   N8nProviderError,
   N8nWebhookError,
 } from "./errors.js";
+export type { ConnectionProvider } from "@relayfile/sdk";
 export type {
   CreateCredentialInput,
   ExecuteWorkflowOptions,
