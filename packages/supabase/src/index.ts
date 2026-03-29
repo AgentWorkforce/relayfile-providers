@@ -35,6 +35,7 @@ export type {
   SupabaseIdentity,
   SupabaseJwtClaims,
   SupabaseMfaFactor,
+  SupabaseNormalizedWebhook,
   SupabaseSession,
   SupabaseSsoProvider,
   SupabaseTransport,
@@ -47,7 +48,6 @@ export type {
 } from "./types.js";
 export type {
   ConnectionProvider,
-  NormalizedWebhook,
   ProxyRequest,
   ProxyResponse,
 } from "@relayfile/sdk";

@@ -22,7 +22,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@agent-relay/sdk": "^3.2.22"
+    "@agent-relay/sdk": "^3.2.22",
+    "@relayfile/sdk": "file:/Users/khaliqgant/Projects/AgentWorkforce-relayfile/packages/sdk/typescript"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

@@ -26,6 +26,7 @@ import {
   getExecution,
   listExecutions,
 } from "./executions.js";
+import type { ConnectionProvider } from "@relayfile/sdk";
 import type {
   CreateCredentialInput,
   ExecuteWorkflowOptions,
@@ -34,7 +35,6 @@ import type {
   ListWorkflowsOptions,
   N8nApiRequestOptions,
   N8nConfig,
-  ConnectionProvider,
   N8nCredential,
   N8nCredentialSchema,
   N8nCredentialTokenValue,
@@ -94,7 +94,7 @@ export class N8nProvider
     return extractCredentialAccessToken(credential, type);
   }
 
-  async proxy(request: ProxyRequest): Promise<ProxyResponse> {
+  async proxy<T = unknown>(request: ProxyRequest): Promise<ProxyResponse<T>> {
     const credential = await this.getCredential(request.connectionId);
     const tokenValue = extractCredentialAccessToken(credential);
     const authHeaders = buildCredentialProxyHeaders(credential, tokenValue);
@@ -124,7 +124,7 @@ export class N8nProvider
       status: response.status,
       headers: responseHeaders,
       data,
-    };
+    } as ProxyResponse<T>;
   }
 
   async healthCheck(): Promise<boolean>;

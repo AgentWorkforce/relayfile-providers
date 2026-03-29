@@ -1,3 +1,10 @@
+import type {
+  NormalizedWebhook as SdkNormalizedWebhook,
+  ProxyMethod as SdkProxyMethod,
+  ProxyRequest as SdkProxyRequest,
+  ProxyResponse as SdkProxyResponse,
+} from "@relayfile/sdk";
+
 export type JsonPrimitive = boolean | number | null | string;
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 export type JsonArray = JsonValue[];
@@ -5,65 +12,24 @@ export type JsonObject = { [key: string]: JsonValue | undefined };
 
 export type HeaderValue = string | string[];
 export type HeaderMap = Record<string, string>;
-export type ProxyMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
+export type ProxyMethod = SdkProxyMethod;
 export type ProxyRequestHeaders = HeaderMap;
 export type ProxyRequestQuery = Record<string, string>;
 export type ProxyRequestBody = JsonValue | string;
 export type ProxyResponseHeaders = Record<string, string>;
 export type ProxyResponseData = JsonValue | string | null;
 
-export interface ProxyRequest<
-  TBody extends ProxyRequestBody = ProxyRequestBody,
-  TQuery extends ProxyRequestQuery = ProxyRequestQuery,
-  THeaders extends ProxyRequestHeaders = ProxyRequestHeaders,
-> {
-  method: ProxyMethod;
-  /** Target service base URL. Optional — the provider resolves it from the connection when omitted. */
-  baseUrl?: string | undefined;
-  endpoint: string;
-  connectionId: string;
-  headers?: THeaders | undefined;
-  body?: TBody | undefined;
-  query?: TQuery | undefined;
-  providerConfigKey?: string | undefined;
-}
-
-export interface ProxyResponse<
-  TData = ProxyResponseData,
-  THeaders extends ProxyResponseHeaders = ProxyResponseHeaders,
-> {
-  status: number;
-  headers: THeaders;
-  data: TData;
-}
-
-export type ProxyRequestInput<
-  TBody extends ProxyRequestBody = ProxyRequestBody,
-  TQuery extends ProxyRequestQuery = ProxyRequestQuery,
-  THeaders extends ProxyRequestHeaders = ProxyRequestHeaders,
-> = ProxyRequest<TBody, TQuery, THeaders>;
-
-export type ProxyResponseOutput<
-  TData = ProxyResponseData,
-  THeaders extends ProxyResponseHeaders = ProxyResponseHeaders,
-> = ProxyResponse<TData, THeaders>;
-
-export type ProxyFailureResponse<
-  TData = ProxyResponseData,
-  THeaders extends ProxyResponseHeaders = ProxyResponseHeaders,
-> = ProxyResponseOutput<TData, THeaders>;
-
-export type ProxyHandler = <
-  TData = ProxyResponseData,
-  TBody extends ProxyRequestBody = ProxyRequestBody,
-  TQuery extends ProxyRequestQuery = ProxyRequestQuery,
-  THeaders extends ProxyRequestHeaders = ProxyRequestHeaders,
->(
-  request: ProxyRequestInput<TBody, TQuery, THeaders>
+export type ProxyRequest = SdkProxyRequest;
+export type ProxyResponse<TData = ProxyResponseData> = SdkProxyResponse<TData>;
+export type ProxyRequestInput = ProxyRequest;
+export type ProxyResponseOutput<TData = ProxyResponseData> = ProxyResponse<TData>;
+export type ProxyFailureResponse<TData = ProxyResponseData> = ProxyResponseOutput<TData>;
+export type ProxyHandler = <TData = ProxyResponseData>(
+  request: ProxyRequestInput
 ) => Promise<ProxyResponseOutput<TData>>;
 
-export interface NormalizedWebhook<TPayload extends Record<string, unknown> = Record<string, unknown>> {
-  provider: string;
+export interface NormalizedWebhook<TPayload extends Record<string, unknown> = Record<string, unknown>>
+  extends SdkNormalizedWebhook {
   connectionId: string;
   eventType: string;
   objectType: string;
@@ -263,7 +229,7 @@ export interface NangoProxyPayload {
   baseUrlOverride?: string | undefined;
   endpoint: string;
   headers?: HeaderMap | undefined;
-  data?: JsonValue | string | undefined;
+  data?: unknown;
   params?: Record<string, string> | undefined;
 }
 

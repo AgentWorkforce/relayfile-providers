@@ -101,11 +101,10 @@ export class NangoProxyTransportError extends NangoProxyError {
 
 export class NangoProxyFailureError<
   TData = ProxyResponseData,
-  THeaders extends ProxyResponseHeaders = ProxyResponseHeaders,
 > extends NangoProxyError {
-  readonly response: ProxyFailureResponse<TData, THeaders>;
+  readonly response: ProxyFailureResponse<TData>;
 
-  constructor(response: ProxyFailureResponse<TData, THeaders>, options: NangoProxyErrorOptions = {}) {
+  constructor(response: ProxyFailureResponse<TData>, options: NangoProxyErrorOptions = {}) {
     super(
       buildProxyFailureMessage(response.status, options.endpoint, options.connectionId),
       buildProxyErrorOptions({

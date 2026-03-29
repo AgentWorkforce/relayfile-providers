@@ -94,10 +94,12 @@ export function normalizeComposioWebhook(rawPayload: unknown): NormalizedWebhook
   return {
     provider,
     connectionId,
+    event: eventType,
     eventType,
     objectType,
     objectId,
     payload: data,
+    raw: rawPayload,
   };
 }
 

@@ -13,12 +13,12 @@ import {
   listOrganizations,
 } from "./organizations.js";
 import { getSession, listSessions, revokeSession, verifySession } from "./sessions.js";
+import type { ConnectionProvider } from "@relayfile/sdk";
 import type {
   ClerkApiRequest,
   ClerkConfig,
   ClerkHeaderValue,
   ClerkHeaders,
-  ConnectionProvider,
   ClerkJWKS,
   ClerkListOrgMembersOptions,
   ClerkListOrganizationsOptions,
@@ -104,7 +104,7 @@ export class ClerkProvider extends IntegrationProvider implements ConnectionProv
     return token.token;
   }
 
-  async proxy(request: ProxyRequest): Promise<ProxyResponse> {
+  async proxy<T = unknown>(request: ProxyRequest): Promise<ProxyResponse<T>> {
     const provider = getProxyProvider(request);
     const accessToken = await this.getAccessToken(request.connectionId, provider);
     const url = new URL(request.endpoint, request.baseUrl ?? this.baseUrl);
@@ -132,7 +132,7 @@ export class ClerkProvider extends IntegrationProvider implements ConnectionProv
     return {
       status: response.status,
       headers: responseHeadersToObject(response.headers),
-      data: await parseResponse(response),
+      data: await parseResponse(response) as T,
     };
   }
 

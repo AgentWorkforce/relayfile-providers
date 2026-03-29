@@ -1,3 +1,7 @@
+import type {
+  NormalizedWebhook as SdkNormalizedWebhook,
+} from "@relayfile/sdk";
+
 export interface SupabaseConfig {
   supabaseUrl: string;
   serviceRoleKey: string;
@@ -191,4 +195,12 @@ export interface SupabaseTransportResponse<T> {
 export interface SupabaseTransport {
   readonly config: Readonly<SupabaseConfig>;
   request<T>(input: SupabaseTransportRequest): Promise<SupabaseTransportResponse<T>>;
+}
+
+export interface SupabaseNormalizedWebhook extends SdkNormalizedWebhook {
+  connectionId: string;
+  eventType: string;
+  objectType: string;
+  objectId: string;
+  payload: Record<string, unknown>;
 }

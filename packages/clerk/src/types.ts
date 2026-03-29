@@ -1,3 +1,11 @@
+import type {
+  ConnectionProvider as SdkConnectionProvider,
+  NormalizedWebhook as SdkNormalizedWebhook,
+  ProxyRequest as SdkProxyRequest,
+  ProxyResponse as SdkProxyResponse,
+  WebhookInput,
+} from "@relayfile/sdk";
+
 export interface ClerkConfig {
   secretKey: string;
   publishableKey?: string;
@@ -19,29 +27,11 @@ export type ClerkWebhookHeaders =
   | Headers
   | Record<string, string | readonly string[] | undefined>;
 
-export interface ProxyRequest {
-  method: ClerkHttpMethod;
-  /** Target service base URL. Optional — resolved from the connection when omitted. */
-  baseUrl?: string | undefined;
-  endpoint: string;
-  connectionId: string;
-  headers?: Record<string, string>;
-  body?: unknown;
-  query?: Record<string, string>;
-}
+export type ProxyRequest = SdkProxyRequest;
 
-export interface ProxyResponse<T = unknown> {
-  status: number;
-  headers: Record<string, string>;
-  data: T;
-}
+export type ProxyResponse<T = unknown> = SdkProxyResponse<T>;
 
-export interface ConnectionProvider {
-  readonly name: string;
-  proxy(request: ProxyRequest): Promise<ProxyResponse>;
-  healthCheck(connectionId: string): Promise<boolean>;
-  handleWebhook?(rawPayload: unknown): Promise<ClerkNormalizedWebhook>;
-}
+export type ConnectionProvider = SdkConnectionProvider;
 
 export interface ClerkApiRequest {
   method: ClerkHttpMethod;
@@ -289,8 +279,8 @@ export interface ClerkVerifyTokenOptions {
   clockTolerance?: string | number;
 }
 
-export interface ClerkNormalizedWebhook {
-  provider: string;
+export interface ClerkNormalizedWebhook
+  extends SdkNormalizedWebhook {
   connectionId: string;
   eventType: string;
   objectType: string;

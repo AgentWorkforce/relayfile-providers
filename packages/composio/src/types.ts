@@ -1,3 +1,11 @@
+import type {
+  ConnectionProvider as SdkConnectionProvider,
+  NormalizedWebhook as SdkNormalizedWebhook,
+  ProxyMethod as SdkProxyMethod,
+  ProxyRequest as SdkProxyRequest,
+  ProxyResponse as SdkProxyResponse,
+} from "@relayfile/sdk";
+
 export type ComposioFetch = typeof fetch;
 
 export interface ComposioAuthConfig {
@@ -11,12 +19,12 @@ export type JsonArray = JsonValue[];
 export type JsonObject = { [key: string]: JsonValue | undefined };
 
 export type ComposioRequestHeaders = Record<string, string>;
-export type ProxyMethod = "DELETE" | "GET" | "HEAD" | "PATCH" | "POST" | "PUT";
+export type ProxyMethod = SdkProxyMethod;
 export type ProxyRequestQuery = Record<string, string>;
-export type ProxyRequestBody = JsonValue | string;
+export type ProxyRequestBody = unknown;
 export type ProxyResponseHeaders = Record<string, string>;
 export type ProxyResponseData = unknown;
-export type ComposioApiMethod = Exclude<ProxyMethod, "HEAD">;
+export type ComposioApiMethod = ProxyMethod;
 export type ComposioApiQueryPrimitive = boolean | number | string;
 export type ComposioApiQueryValue =
   | ComposioApiQueryPrimitive
@@ -59,32 +67,10 @@ export interface ComposioProviderConfig {
   fetch?: ComposioFetch;
 }
 
-export interface ProxyRequest<
-  TBody extends ProxyRequestBody = ProxyRequestBody,
-  TQuery extends ProxyRequestQuery = ProxyRequestQuery,
-  THeaders extends ComposioRequestHeaders = ComposioRequestHeaders,
-> {
-  method: ProxyMethod;
-  /** Target service base URL. Optional — resolved from the connected account when omitted. */
-  baseUrl?: string | undefined;
-  endpoint: string;
-  connectionId: string;
-  headers?: THeaders;
-  body?: TBody;
-  query?: TQuery;
-}
+export type ProxyRequest = SdkProxyRequest;
+export type ProxyResponse<TData = ProxyResponseData> = SdkProxyResponse<TData>;
 
-export interface ProxyResponse<
-  TData = ProxyResponseData,
-  THeaders extends ProxyResponseHeaders = ProxyResponseHeaders,
-> {
-  status: number;
-  headers: THeaders;
-  data: TData;
-}
-
-export interface NormalizedWebhook {
-  provider: string;
+export interface NormalizedWebhook extends SdkNormalizedWebhook {
   connectionId: string;
   eventType: string;
   objectType: string;
@@ -92,12 +78,7 @@ export interface NormalizedWebhook {
   payload: NormalizedWebhookPayload;
 }
 
-export interface ConnectionProvider {
-  readonly name: string;
-  proxy(request: ProxyRequest): Promise<ProxyResponse>;
-  healthCheck(connectionId: string): Promise<boolean>;
-  handleWebhook?(rawPayload: unknown): Promise<NormalizedWebhook>;
-}
+export type ConnectionProvider = SdkConnectionProvider;
 
 export interface ResolvedComposioProviderConfig {
   apiKey: string;

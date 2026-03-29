@@ -1,3 +1,12 @@
+import type {
+  ConnectionProvider as SdkConnectionProvider,
+  NormalizedWebhook as SdkNormalizedWebhook,
+  ProxyMethod as SdkProxyMethod,
+  ProxyRequest as SdkProxyRequest,
+  ProxyResponse as SdkProxyResponse,
+  WebhookInput,
+} from "@relayfile/sdk";
+
 export type JsonPrimitive = boolean | number | null | string;
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 export type JsonArray = JsonValue[];
@@ -171,27 +180,12 @@ export interface N8nRequestExecutor {
   ): Promise<T>;
 }
 
-export type ProxyMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
+export type ProxyMethod = SdkProxyMethod;
+export type ProxyRequest = SdkProxyRequest;
+export type ProxyResponse<T = unknown> = SdkProxyResponse<T>;
 
-export interface ProxyRequest {
-  method: ProxyMethod;
-  /** Target service base URL. Optional — resolved from the credential when omitted. */
-  baseUrl?: string | undefined;
-  endpoint: string;
-  connectionId: string;
-  headers?: Record<string, string>;
-  body?: unknown;
-  query?: Record<string, string>;
-}
-
-export interface ProxyResponse {
-  status: number;
-  headers: Record<string, string>;
-  data: unknown;
-}
-
-export interface NormalizedWebhook {
-  provider: string;
+export interface NormalizedWebhook
+  extends SdkNormalizedWebhook {
   connectionId: string;
   eventType: string;
   objectType: string;
@@ -201,9 +195,4 @@ export interface NormalizedWebhook {
   metadata?: Record<string, string>;
 }
 
-export interface ConnectionProvider {
-  readonly name: string;
-  proxy(request: ProxyRequest): Promise<ProxyResponse>;
-  healthCheck(connectionId?: string): Promise<boolean>;
-  handleWebhook(rawPayload: unknown): Promise<NormalizedWebhook>;
-}
+export type ConnectionProvider = SdkConnectionProvider;

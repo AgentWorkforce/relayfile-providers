@@ -8,8 +8,8 @@ import {
 } from "./health.js";
 import { proxyThroughNango } from "./proxy.js";
 import { normalizeNangoWebhook } from "./webhook.js";
+import type { ConnectionProvider } from "@relayfile/sdk";
 import type {
-  ConnectionProvider,
   NangoConnection,
   NangoConnectionDetailResult,
   NangoConnectionHealthResult,
@@ -18,6 +18,8 @@ import type {
   NangoListConnectionsOptions,
   NangoProviderConfig,
   NormalizedWebhook,
+  ProxyRequest,
+  ProxyResponse,
 } from "./types.js";
 
 export class NangoProvider implements ConnectionProvider {
@@ -47,9 +49,9 @@ export class NangoProvider implements ConnectionProvider {
     return this.config.providerConfigKey;
   }
 
-  proxy: ConnectionProvider["proxy"] = async (request) => {
-    return proxyThroughNango(this.config, request);
-  };
+  async proxy<T = unknown>(request: ProxyRequest): Promise<ProxyResponse<T>> {
+    return (await proxyThroughNango(this.config, request)) as ProxyResponse<T>;
+  }
 
   async healthCheck(connectionId: string): Promise<boolean> {
     return healthCheckNangoConnection(connectionId, this.config);
@@ -66,16 +68,22 @@ export class NangoProvider implements ConnectionProvider {
     return normalizeNangoWebhook(rawPayload, providerConfigKey);
   }
 
+  async getConnection(connectionId: string): Promise<Record<string, unknown>>;
+  async getConnection(
+    connectionId: string,
+    options: NangoGetConnectionOptions,
+  ): Promise<NangoConnection | null>;
   async getConnection(
     connectionId: string,
     options: NangoGetConnectionOptions = {},
-  ): Promise<NangoConnection | null> {
+  ): Promise<Record<string, unknown> | NangoConnection | null> {
     const normalizedOptions = normalizeGetConnectionOptions(
       options,
       this.config.providerConfigKey,
     );
 
-    return getNangoConnection(this.config, connectionId, normalizedOptions);
+    const connection = await getNangoConnection(this.config, connectionId, normalizedOptions);
+    return Object.keys(options).length === 0 ? (connection?.raw ?? {}) : connection;
   }
 
   async getConnectionDetail(
@@ -107,11 +115,16 @@ export class NangoProvider implements ConnectionProvider {
     });
   }
 
+  async listConnections(): Promise<Array<Record<string, unknown>>>;
+  async listConnections(options: string | NangoListConnectionsOptions): Promise<NangoConnection[]>;
   async listConnections(
     options: string | NangoListConnectionsOptions = {},
-  ): Promise<NangoConnection[]> {
+  ): Promise<Array<Record<string, unknown>> | NangoConnection[]> {
     const result = await this.listConnectionDetails(options);
-    return result.connections;
+    if (typeof options === "string" || Object.keys(options).length > 0) {
+      return result.connections;
+    }
+    return result.connections.map((connection) => connection.raw);
   }
 }
 
