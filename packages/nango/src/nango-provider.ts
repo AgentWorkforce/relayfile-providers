@@ -75,15 +75,15 @@ export class NangoProvider implements ConnectionProvider {
   ): Promise<NangoConnection | null>;
   async getConnection(
     connectionId: string,
-    options: NangoGetConnectionOptions = {},
+    options?: NangoGetConnectionOptions,
   ): Promise<Record<string, unknown> | NangoConnection | null> {
     const normalizedOptions = normalizeGetConnectionOptions(
-      options,
+      options ?? {},
       this.config.providerConfigKey,
     );
 
     const connection = await getNangoConnection(this.config, connectionId, normalizedOptions);
-    return Object.keys(options).length === 0 ? (connection?.raw ?? {}) : connection;
+    return options === undefined ? (connection?.raw ?? {}) : connection;
   }
 
   async getConnectionDetail(
@@ -118,10 +118,10 @@ export class NangoProvider implements ConnectionProvider {
   async listConnections(): Promise<Array<Record<string, unknown>>>;
   async listConnections(options: string | NangoListConnectionsOptions): Promise<NangoConnection[]>;
   async listConnections(
-    options: string | NangoListConnectionsOptions = {},
+    options?: string | NangoListConnectionsOptions,
   ): Promise<Array<Record<string, unknown>> | NangoConnection[]> {
-    const result = await this.listConnectionDetails(options);
-    if (typeof options === "string" || Object.keys(options).length > 0) {
+    const result = await this.listConnectionDetails(options ?? {});
+    if (options !== undefined) {
       return result.connections;
     }
     return result.connections.map((connection) => connection.raw);

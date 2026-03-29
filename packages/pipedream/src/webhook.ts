@@ -1,3 +1,4 @@
+import { computeCanonicalPath } from "@relayfile/sdk";
 import { asObject, asOptionalString, isObject } from "./apps.js";
 import type { PipedreamNormalizedWebhook } from "./types.js";
 
@@ -7,7 +8,6 @@ export function normalizePipedreamWebhook(rawInput: unknown): PipedreamNormalize
   if (isRelayfileStyleWebhook(record)) {
     return {
       provider: record.provider,
-      event: String(record.event ?? record.eventType ?? record.event_type),
       connectionId:
         asOptionalString(record.connectionId) ??
         asOptionalString(record.connection_id) ??
@@ -36,7 +36,6 @@ export function normalizePipedreamWebhook(rawInput: unknown): PipedreamNormalize
 
     return {
       provider: asOptionalString(app.name_slug) ?? "pipedream",
-      event: "connected",
       connectionId: accountId,
       objectType: "account",
       objectId: accountId,
@@ -51,7 +50,6 @@ export function normalizePipedreamWebhook(rawInput: unknown): PipedreamNormalize
     const objectId = sessionFallback(record);
     return {
       provider: "pipedream",
-      event: "connection_error",
       connectionId: objectId,
       objectType: "connect_session",
       objectId,
@@ -88,7 +86,6 @@ export function normalizePipedreamWebhook(rawInput: unknown): PipedreamNormalize
 
   return {
     provider,
-    event: eventType,
     connectionId,
     objectType,
     objectId,
@@ -100,7 +97,7 @@ export function normalizePipedreamWebhook(rawInput: unknown): PipedreamNormalize
 }
 
 export function getWebhookPath(event: PipedreamNormalizedWebhook): string {
-  return `/${event.provider}/${event.objectType}/${event.objectId}.json`;
+  return computeCanonicalPath(event.provider, event.objectType, event.objectId);
 }
 
 function isRelayfileStyleWebhook(

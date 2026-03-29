@@ -64,6 +64,7 @@ export interface PipedreamNormalizedWebhook
   objectType: string;
   objectId: string;
   payload: Record<string, unknown>;
+  raw: unknown;
   metadata?: Record<string, string>;
 }
 
