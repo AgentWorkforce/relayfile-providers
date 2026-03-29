@@ -185,7 +185,7 @@ export async function lookupActionForRequest(
     if (controlHeaders.toolkitSlug) return controlHeaders.toolkitSlug;
     const fromConnection = await resolveToolkitFromConnection(config, request.connectionId);
     if (fromConnection) return fromConnection;
-    return resolveToolkitSlug(request.baseUrl, config.defaultToolset);
+    return request.baseUrl ? resolveToolkitSlug(request.baseUrl, config.defaultToolset) : config.defaultToolset?.slug;
   };
 
   if (controlHeaders.toolSlug) {
@@ -436,7 +436,7 @@ function buildProxyExecutionBody(
   const endpoint = normalizeEndpoint(request.endpoint);
   const body: Record<string, unknown> = {
     connected_account_id: request.connectionId.trim(),
-    endpoint: isAbsoluteUrl(endpoint) ? endpoint : buildAbsoluteEndpoint(request.baseUrl, endpoint),
+    endpoint: isAbsoluteUrl(endpoint) ? endpoint : (request.baseUrl ? buildAbsoluteEndpoint(request.baseUrl, endpoint) : endpoint),
     method: request.method,
   };
 
@@ -751,10 +751,7 @@ function validateProxyRequest(request: ProxyRequest): void {
   if (request.connectionId.trim().length === 0) {
     throw new Error("Composio proxy requests require a non-empty connectionId.");
   }
-
-  if (request.baseUrl.trim().length === 0) {
-    throw new Error("Composio proxy requests require a non-empty baseUrl.");
-  }
+  // baseUrl is optional — resolved from connected account or defaultToolset when omitted.
 }
 
 function isAbsoluteUrl(value: string): boolean {

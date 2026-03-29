@@ -107,7 +107,7 @@ export class ClerkProvider extends IntegrationProvider implements ConnectionProv
   async proxy(request: ProxyRequest): Promise<ProxyResponse> {
     const provider = getProxyProvider(request);
     const accessToken = await this.getAccessToken(request.connectionId, provider);
-    const url = new URL(request.endpoint, request.baseUrl);
+    const url = new URL(request.endpoint, request.baseUrl ?? this.baseUrl);
 
     if (request.query) {
       for (const [key, value] of Object.entries(request.query)) {
@@ -440,6 +440,7 @@ function getProxyProvider(request: ProxyRequest): string {
     return headerProvider;
   }
 
+  if (!request.baseUrl) return "clerk"; // no baseUrl → assume clerk API
   const hostname = new URL(request.baseUrl).hostname.toLowerCase();
   const match = hostname.match(/(?:api|www)\.([^.]+)\./);
   if (match?.[1]) {

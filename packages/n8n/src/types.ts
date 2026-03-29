@@ -175,7 +175,8 @@ export type ProxyMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
 
 export interface ProxyRequest {
   method: ProxyMethod;
-  baseUrl: string;
+  /** Target service base URL. Optional — resolved from the credential when omitted. */
+  baseUrl?: string | undefined;
   endpoint: string;
   connectionId: string;
   headers?: Record<string, string>;

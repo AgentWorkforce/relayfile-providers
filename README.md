@@ -36,10 +36,18 @@ const provider = new NangoProvider(relayfile, {
 const token = await provider.getAccessToken("connection_id_123");
 
 // 4. Proxy an API call through the provider (handles auth automatically)
+// baseUrl is optional — the provider resolves it from the connection.
 const response = await provider.proxy({
   method: "GET",
-  baseUrl: "https://api.github.com",
   endpoint: "/repos/acme/api/pulls",
+  connectionId: "connection_id_123",
+});
+
+// Override baseUrl when targeting a non-default API:
+const customResponse = await provider.proxy({
+  method: "GET",
+  baseUrl: "https://uploads.github.com",
+  endpoint: "/repos/acme/api/releases/1/assets",
   connectionId: "connection_id_123",
 });
 

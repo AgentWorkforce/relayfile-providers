@@ -98,7 +98,7 @@ export class N8nProvider
     const credential = await this.getCredential(request.connectionId);
     const tokenValue = extractCredentialAccessToken(credential);
     const authHeaders = buildCredentialProxyHeaders(credential, tokenValue);
-    const url = buildProxyUrl(request.baseUrl, request.endpoint, request.query);
+    const url = buildProxyUrl(request.baseUrl ?? this.baseUrl, request.endpoint, request.query);
     const headers = buildRequestHeaders(request.headers, request.body, authHeaders);
 
     let response: Response;

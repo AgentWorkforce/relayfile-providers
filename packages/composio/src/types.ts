@@ -65,7 +65,8 @@ export interface ProxyRequest<
   THeaders extends ComposioRequestHeaders = ComposioRequestHeaders,
 > {
   method: ProxyMethod;
-  baseUrl: string;
+  /** Target service base URL. Optional — resolved from the connected account when omitted. */
+  baseUrl?: string | undefined;
   endpoint: string;
   connectionId: string;
   headers?: THeaders;

@@ -23,9 +23,14 @@ const COMMON_SUBDOMAINS = new Set(["api", "app", "graph", "graphql", "rest", "se
 export function buildNangoProxyPayload(request: ProxyRequest): NangoProxyPayload {
   const payload: NangoProxyPayload = {
     method: request.method,
-    baseUrlOverride: normalizeBaseUrl(request.baseUrl),
     endpoint: normalizeEndpoint(request.endpoint),
   };
+
+  // Only override baseUrl when the caller explicitly provides one.
+  // When omitted, Nango resolves the target from the provider config.
+  if (request.baseUrl !== undefined && request.baseUrl.trim().length > 0) {
+    payload.baseUrlOverride = normalizeBaseUrl(request.baseUrl);
+  }
 
   if (request.headers !== undefined && Object.keys(request.headers).length > 0) {
     payload.headers = { ...request.headers };
@@ -162,13 +167,16 @@ export function resolveProviderConfigKey(
     return configured.trim();
   }
 
-  const derived = deriveProviderConfigKey(request.baseUrl);
-  if (derived !== undefined) {
-    return derived;
+  if (request.baseUrl !== undefined && request.baseUrl.trim().length > 0) {
+    const derived = deriveProviderConfigKey(request.baseUrl);
+    if (derived !== undefined) {
+      return derived;
+    }
   }
 
   throw new NangoProxyConfigError(
-    `NangoProvider requires a providerConfigKey or a recognizable base URL. Received: ${request.baseUrl}`,
+    `NangoProvider requires a providerConfigKey, integrationId, or a recognizable base URL. ` +
+    `Either set providerConfigKey in the provider config or pass baseUrl in the proxy request.`,
   );
 }
 

@@ -18,7 +18,8 @@ export interface ProxyRequest<
   THeaders extends ProxyRequestHeaders = ProxyRequestHeaders,
 > {
   method: ProxyMethod;
-  baseUrl: string;
+  /** Target service base URL. Optional — the provider resolves it from the connection when omitted. */
+  baseUrl?: string | undefined;
   endpoint: string;
   connectionId: string;
   headers?: THeaders | undefined;
@@ -259,7 +260,7 @@ export interface NangoConnectionListResult {
 
 export interface NangoProxyPayload {
   method: ProxyMethod;
-  baseUrlOverride: string;
+  baseUrlOverride?: string | undefined;
   endpoint: string;
   headers?: HeaderMap | undefined;
   data?: JsonValue | string | undefined;

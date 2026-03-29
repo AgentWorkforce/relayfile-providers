@@ -21,7 +21,8 @@ export type ClerkWebhookHeaders =
 
 export interface ProxyRequest {
   method: ClerkHttpMethod;
-  baseUrl: string;
+  /** Target service base URL. Optional — resolved from the connection when omitted. */
+  baseUrl?: string | undefined;
   endpoint: string;
   connectionId: string;
   headers?: Record<string, string>;
