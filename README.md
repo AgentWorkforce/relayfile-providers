@@ -88,6 +88,25 @@ const pipedream = new PipedreamProvider(relayfile, {
 });
 ```
 
+## What Agents See
+
+Agents never interact with providers. They read and write files:
+
+```ts
+// Agent reads Slack messages — they're just files
+const messages = await relayfile.getFile(workspaceId, "/slack/channels/general/messages.json");
+
+// Agent posts a reply — just writes a file
+await relayfile.putFile(workspaceId, "/slack/channels/general/messages/reply.json", {
+  content: JSON.stringify({ text: "Got it, I'll look into this." }),
+});
+
+// The provider handles OAuth, the adapter handles posting to Slack's API.
+// The agent doesn't know or care about either.
+```
+
+Providers exist so agents don't have to. All the auth complexity is hidden behind the filesystem abstraction.
+
 ## How It Fits Together
 
 ```
