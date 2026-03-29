@@ -42,7 +42,7 @@ async function main() {
   try {
     const detail = await nango.getConnectionHealth(CONNECTION_ID);
     console.log("Status:", detail.status);
-    console.log("Reasons:", detail.reasons);
+    console.log("Reason:", detail.reason);
     console.log("Details:", JSON.stringify(detail.details, null, 2));
   } catch (err) {
     console.log("Detailed health check failed (expected):", (err as Error).message);
