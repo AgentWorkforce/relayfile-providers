@@ -127,6 +127,9 @@ test("healthCheck(connectionId) returns false when the upstream account lookup f
 
 test("proxy(request) normalizes outbound requests and inbound proxy responses", async () => {
   const { calls, fetch } = createFetchStub(
+    // Connected account lookup response
+    jsonResponse({ toolkit: { slug: "github" } }),
+    // Proxy action execution response
     jsonResponse(
       {
         status: 201,
@@ -171,12 +174,15 @@ test("proxy(request) normalizes outbound requests and inbound proxy responses", 
 
   const response = await provider.proxy(request);
 
-  assert.equal(calls.length, 1);
-  assert.equal(calls[0]?.input, "https://backend.composio.dev/api/v3/tools/execute/proxy");
-  assert.equal(calls[0]?.init?.method, "POST");
-  assert.equal(getHeaderValue(calls[0]?.init?.headers, "x-api-key"), "test-api-key");
+  assert.equal(calls.length, 2);
+  // First call: connected account lookup
+  assert.ok(calls[0]?.input?.toString().includes("/connected_accounts/"));
+  // Second call: proxy execution
+  assert.equal(calls[1]?.input, "https://backend.composio.dev/api/v3/tools/execute/proxy");
+  assert.equal(calls[1]?.init?.method, "POST");
+  assert.equal(getHeaderValue(calls[1]?.init?.headers, "x-api-key"), "test-api-key");
 
-  assert.deepEqual(getJsonRequestBody(calls[0] as FetchCall), {
+  assert.deepEqual(getJsonRequestBody(calls[1] as FetchCall), {
     connected_account_id: "conn_123",
     endpoint: "https://api.github.com/repos/openai/openai/pulls",
     method: "POST",
