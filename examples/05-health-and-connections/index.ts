@@ -5,36 +5,47 @@
  * Useful for dashboards, monitoring, and debugging auth issues.
  */
 
+import type { ConnectionProvider } from "@relayfile/sdk";
 import {
   NangoProvider,
   getConnectionHealth,
   healthCheckNangoConnection,
 } from "@relayfile/provider-nango";
 import { ComposioProvider } from "@relayfile/provider-composio";
+import { asConnectionProvider } from "../shared/connection-provider";
 
 // ── Config ──────────────────────────────────────────────────────────
 const NANGO_SECRET_KEY = process.env.NANGO_SECRET_KEY ?? "nango-mock-key";
 const COMPOSIO_API_KEY = process.env.COMPOSIO_API_KEY ?? "composio-mock-key";
 const CONNECTION_ID = process.env.CONNECTION_ID ?? "conn_demo";
 
+async function logHealth(provider: ConnectionProvider, connectionId: string) {
+  try {
+    const healthy = await provider.healthCheck(connectionId);
+    console.log(
+      `${provider.name} connection "${connectionId}":`,
+      healthy ? "healthy" : "unhealthy",
+    );
+  } catch (err) {
+    console.log(
+      `${provider.name} health check failed (expected without credentials):`,
+      (err as Error).message,
+    );
+  }
+}
+
 async function main() {
   const nango = new NangoProvider({ secretKey: NANGO_SECRET_KEY });
   const composio = new ComposioProvider({ apiKey: COMPOSIO_API_KEY });
+  const providers: ConnectionProvider[] = [
+    asConnectionProvider(nango),
+    asConnectionProvider(composio),
+  ];
 
   // ── 1. Simple boolean health check ────────────────────────────────
   console.log("--- Simple health checks ---");
-  try {
-    const nangoHealthy = await nango.healthCheck(CONNECTION_ID);
-    console.log(`Nango connection "${CONNECTION_ID}":`, nangoHealthy ? "healthy" : "unhealthy");
-  } catch (err) {
-    console.log(`Nango health check failed (expected without credentials):`, (err as Error).message);
-  }
-
-  try {
-    const composioHealthy = await composio.healthCheck(CONNECTION_ID);
-    console.log(`Composio connection "${CONNECTION_ID}":`, composioHealthy ? "healthy" : "unhealthy");
-  } catch (err) {
-    console.log(`Composio health check failed (expected without credentials):`, (err as Error).message);
+  for (const provider of providers) {
+    await logHealth(provider, CONNECTION_ID);
   }
 
   // ── 2. Detailed Nango health diagnostic ───────────────────────────

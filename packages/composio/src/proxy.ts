@@ -179,13 +179,32 @@ export async function lookupActionForRequest(
   request: ProxyRequest,
 ): Promise<ComposioActionLookupResult> {
   const controlHeaders = extractControlHeaders(request.headers);
+  let toolkitSource: "connected-account" | "default-toolset" | "derived-base-url" | "explicit-header" | undefined;
 
-  // Resolve toolkit: explicit header > connected account API > hostname heuristic
+  // Resolve toolkit from the connected account first when available; it is the
+  // authoritative source for a bound Composio connection. Control headers and
+  // hostname heuristics remain as fallbacks for incomplete account data.
   const resolveToolkit = async (): Promise<string | undefined> => {
-    if (controlHeaders.toolkitSlug) return controlHeaders.toolkitSlug;
     const fromConnection = await resolveToolkitFromConnection(config, request.connectionId);
-    if (fromConnection) return fromConnection;
-    return request.baseUrl ? resolveToolkitSlug(request.baseUrl, config.defaultToolset) : config.defaultToolset?.slug;
+    if (fromConnection) {
+      toolkitSource = "connected-account";
+      return fromConnection;
+    }
+    if (controlHeaders.toolkitSlug) {
+      toolkitSource = "explicit-header";
+      return controlHeaders.toolkitSlug;
+    }
+    if (request.baseUrl) {
+      const resolved = resolveToolkitSlug(request.baseUrl, config.defaultToolset);
+      if (resolved) {
+        toolkitSource = config.defaultToolset?.slug === resolved ? "default-toolset" : "derived-base-url";
+      }
+      return resolved;
+    }
+    if (config.defaultToolset?.slug) {
+      toolkitSource = "default-toolset";
+    }
+    return config.defaultToolset?.slug;
   };
 
   if (controlHeaders.toolSlug) {
@@ -218,7 +237,7 @@ export async function lookupActionForRequest(
     toolSlug: undefined,
     toolkitSlug,
     toolkitVersion,
-    matchedBy: config.defaultToolset?.slug === toolkitSlug ? "default-toolset" : "derived-base-url",
+    matchedBy: toolkitSource ?? "unresolved",
   });
 }
 
