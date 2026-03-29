@@ -21,7 +21,7 @@
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"TODO: fix CJS/ESM test issue\" && exit 0",
+    "test": "npm run build && node --import tsx --test 'src/__tests__/*.test.ts'",
     "prepack": "npm run build"
   },
   "keywords": [
@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.2"
   },
   "engines": {
