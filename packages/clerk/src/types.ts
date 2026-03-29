@@ -1,10 +1,11 @@
 import type {
-  ConnectionProvider as SdkConnectionProvider,
+  ConnectionProvider,
   NormalizedWebhook as SdkNormalizedWebhook,
-  ProxyRequest as SdkProxyRequest,
-  ProxyResponse as SdkProxyResponse,
+  ProxyRequest,
+  ProxyResponse,
   WebhookInput,
 } from "@relayfile/sdk";
+export type { ConnectionProvider, ProxyRequest, ProxyResponse } from "@relayfile/sdk";
 
 export interface ClerkConfig {
   secretKey: string;
@@ -26,12 +27,6 @@ export type ClerkHeaders = Record<string, string>;
 export type ClerkWebhookHeaders =
   | Headers
   | Record<string, string | readonly string[] | undefined>;
-
-export type ProxyRequest = SdkProxyRequest;
-
-export type ProxyResponse<T = unknown> = SdkProxyResponse<T>;
-
-export type ConnectionProvider = SdkConnectionProvider;
 
 export interface ClerkApiRequest {
   method: ClerkHttpMethod;

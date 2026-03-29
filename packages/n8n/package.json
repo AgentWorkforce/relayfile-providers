@@ -30,7 +30,7 @@
     "provider"
   ],
   "dependencies": {
-    "@relayfile/sdk": "file:/Users/khaliqgant/Projects/AgentWorkforce-relayfile/packages/sdk/typescript"
+    "@relayfile/sdk": "file:../../AgentWorkforce-relayfile/packages/sdk/typescript"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",

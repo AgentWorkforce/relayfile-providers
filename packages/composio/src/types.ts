@@ -1,10 +1,8 @@
 import type {
-  ConnectionProvider as SdkConnectionProvider,
   NormalizedWebhook as SdkNormalizedWebhook,
-  ProxyMethod as SdkProxyMethod,
-  ProxyRequest as SdkProxyRequest,
-  ProxyResponse as SdkProxyResponse,
+  ProxyMethod,
 } from "@relayfile/sdk";
+export type { ConnectionProvider, ProxyMethod, ProxyRequest, ProxyResponse } from "@relayfile/sdk";
 
 export type ComposioFetch = typeof fetch;
 
@@ -19,7 +17,6 @@ export type JsonArray = JsonValue[];
 export type JsonObject = { [key: string]: JsonValue | undefined };
 
 export type ComposioRequestHeaders = Record<string, string>;
-export type ProxyMethod = SdkProxyMethod;
 export type ProxyRequestQuery = Record<string, string>;
 export type ProxyRequestBody = unknown;
 export type ProxyResponseHeaders = Record<string, string>;
@@ -67,9 +64,6 @@ export interface ComposioProviderConfig {
   fetch?: ComposioFetch;
 }
 
-export type ProxyRequest = SdkProxyRequest;
-export type ProxyResponse<TData = ProxyResponseData> = SdkProxyResponse<TData>;
-
 export interface NormalizedWebhook extends SdkNormalizedWebhook {
   connectionId: string;
   eventType: string;
@@ -77,8 +71,6 @@ export interface NormalizedWebhook extends SdkNormalizedWebhook {
   objectId: string;
   payload: NormalizedWebhookPayload;
 }
-
-export type ConnectionProvider = SdkConnectionProvider;
 
 export interface ResolvedComposioProviderConfig {
   apiKey: string;
