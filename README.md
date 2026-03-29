@@ -10,6 +10,12 @@ Used with [relayfile adapters](https://github.com/AgentWorkforce/relayfile-adapt
 npm install @relayfile/sdk @relayfile/provider-nango
 ```
 
+### Getting a token
+
+**Hosted (api.relayfile.dev):** Create a workspace at [relayfile.dev](https://relayfile.dev) and generate an API token from the dashboard.
+
+**Self-hosted:** Tokens are JWTs issued by [relayauth](https://github.com/AgentWorkforce/relayauth). See the [adapters README](https://github.com/AgentWorkforce/relayfile-adapters#getting-a-token) for details.
+
 ### Connect a provider to relayfile
 
 ```ts
