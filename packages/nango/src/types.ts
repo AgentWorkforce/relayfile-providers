@@ -476,20 +476,6 @@ export interface RefreshRetryDecisionInput {
   error?: unknown;
 }
 
-export interface ConnectionProvider {
-  readonly name: string;
-  proxy: ProxyHandler;
-  healthCheck(connectionId: string): Promise<boolean>;
-  handleWebhook?(rawPayload: unknown): Promise<NormalizedWebhook>;
-  getConnection?(
-    connectionId: string,
-    options?: NangoGetConnectionOptions
-  ): Promise<NangoConnection | null>;
-  listConnections?(
-    options?: NangoListConnectionsOptions | string
-  ): Promise<NangoConnection[] | NangoConnectionListResult>;
-}
-
 // The base provider contract returns a boolean, while the package also exposes
 // richer diagnostics for provider-specific workflows and tests.
 export const NANGO_CONNECTION_HEALTH_STATUSES = ["healthy", "degraded", "failed"] as const;
