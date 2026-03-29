@@ -19,12 +19,10 @@ const RESERVED_HEADER_NAMES = new Set([
 ]);
 
 /**
- * Hostname → toolkit overrides for cases where the heuristic can't
- * derive the correct Composio toolkit slug from the domain alone.
- *
- * Prefer passing `toolkit` explicitly in proxy options instead of
- * growing this map. The generic heuristic (strip common subdomains,
- * take first label) handles most services correctly.
+ * Last-resort hostname → toolkit overrides for cases where both the
+ * connected account API and the hostname heuristic fail.
+ * This should rarely be needed — the connected account's toolkit.slug
+ * is authoritative. These exist only as a safety net.
  */
 const TOOLKIT_HOSTNAME_OVERRIDES: Readonly<Record<string, string>> = {
   "www.googleapis.com": "gmail",
@@ -148,22 +146,58 @@ export async function checkComposioConnectionHealth(
   return !disabled && status !== undefined && HEALTHY_ACCOUNT_STATUSES.has(status);
 }
 
+/**
+ * Resolve toolkit slug from the connected account via Composio API.
+ * This is authoritative — Composio knows which toolkit a connection belongs to.
+ * Falls back to hostname heuristic only if the API call fails.
+ */
+async function resolveToolkitFromConnection(
+  config: ResolvedComposioProviderConfig,
+  connectionId: string,
+): Promise<string | undefined> {
+  try {
+    const response = await executeComposioRequest(
+      config,
+      `/connected_accounts/${encodeURIComponent(connectionId.trim())}`,
+      buildRequestInit({
+        method: "GET",
+        headers: buildComposioApiHeaders(config.apiKey, { accept: "application/json" }),
+        body: undefined,
+        signal: createTimeoutSignal(config.timeoutMs),
+      }),
+    );
+    if (!response.ok) return undefined;
+    const payload = (await readResponsePayload(response)) as ComposioConnectedAccount | null;
+    return payload?.toolkit?.slug ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function lookupActionForRequest(
   config: ResolvedComposioProviderConfig,
   request: ProxyRequest,
 ): Promise<ComposioActionLookupResult> {
   const controlHeaders = extractControlHeaders(request.headers);
 
+  // Resolve toolkit: explicit header > connected account API > hostname heuristic
+  const resolveToolkit = async (): Promise<string | undefined> => {
+    if (controlHeaders.toolkitSlug) return controlHeaders.toolkitSlug;
+    const fromConnection = await resolveToolkitFromConnection(config, request.connectionId);
+    if (fromConnection) return fromConnection;
+    return resolveToolkitSlug(request.baseUrl, config.defaultToolset);
+  };
+
   if (controlHeaders.toolSlug) {
     return buildLookupResult({
       toolSlug: controlHeaders.toolSlug,
-      toolkitSlug: controlHeaders.toolkitSlug ?? resolveToolkitSlug(request.baseUrl, config.defaultToolset),
+      toolkitSlug: await resolveToolkit(),
       toolkitVersion: controlHeaders.toolkitVersion ?? config.defaultToolset?.version,
       matchedBy: "explicit-header",
     });
   }
 
-  const toolkitSlug = controlHeaders.toolkitSlug ?? resolveToolkitSlug(request.baseUrl, config.defaultToolset);
+  const toolkitSlug = await resolveToolkit();
   const toolkitVersion = controlHeaders.toolkitVersion ?? config.defaultToolset?.version;
 
   if (!toolkitSlug) {
