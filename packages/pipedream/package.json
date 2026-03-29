@@ -23,7 +23,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@relayfile/sdk": "file:../../AgentWorkforce-relayfile/packages/sdk/typescript"
+    "@relayfile/sdk": "^0.1.6"
   },
   "devDependencies": {
     "@types/node": "^24.6.0",
