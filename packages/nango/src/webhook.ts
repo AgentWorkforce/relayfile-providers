@@ -180,7 +180,6 @@ function normalizeAuthWebhook(
   }
 
   return {
-    event: success ? mapping.success : mapping.failure,
     provider,
     connectionId,
     eventType: success ? mapping.success : mapping.failure,
@@ -194,7 +193,6 @@ function normalizeAuthWebhook(
       providerConfigKey,
       success,
     }),
-    raw: payload,
   };
 }
 
@@ -219,7 +217,6 @@ function normalizeSyncWebhook(
 
   return {
     provider: providerConfigKey,
-    event: `sync.${stage}`,
     connectionId,
     eventType: `sync.${stage}`,
     objectType: "sync",
@@ -230,7 +227,6 @@ function normalizeSyncWebhook(
       stage,
       syncName,
     }),
-    raw: payload,
   };
 }
 
@@ -253,13 +249,11 @@ function normalizeForwardWebhook(
 
   return {
     provider,
-    event: metadata.eventType,
     connectionId,
     eventType: metadata.eventType,
     objectType: metadata.objectType,
     objectId: metadata.objectId,
     payload: buildForwardPayload(payload, rawPayload, metadata, provider, providerConfigKey),
-    raw: payload,
   };
 }
 
@@ -353,13 +347,11 @@ function normalizeGenericWebhook(
 
   return {
     provider,
-    event: eventType,
     connectionId,
     eventType,
     objectType,
     objectId,
     payload: buildGenericPayload(payload, nestedPayload, providerConfigKey),
-    raw: payload,
   };
 }
 

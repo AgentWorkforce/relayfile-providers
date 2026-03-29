@@ -73,13 +73,11 @@ function normalizeDatabaseWebhook(payload: SupabaseWebhookPayload): SupabaseNorm
   const objectId = readObjectId(record.id, "Supabase database webhook is missing record.id.");
   return {
     provider: "supabase",
-    event: eventType,
     connectionId: objectId,
     eventType,
     objectType: `${schema}.${table}`,
     objectId,
     payload: payload as Record<string, unknown>,
-    raw: payload,
   };
 }
 
@@ -94,13 +92,11 @@ function normalizeAuthWebhook(payload: SupabaseWebhookPayload): SupabaseNormaliz
 
   return {
     provider: "supabase",
-    event: eventType,
     connectionId: typeof payload.claims?.sub === "string" ? payload.claims.sub : objectId,
     eventType,
     objectType: resolveObjectType(payload),
     objectId,
     payload: payload as Record<string, unknown>,
-    raw: payload,
   };
 }
 

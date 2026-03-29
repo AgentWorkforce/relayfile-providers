@@ -1,11 +1,11 @@
 import type {
-  ConnectionProvider,
+  ConnectionProvider as SdkConnectionProvider,
   NormalizedWebhook as SdkNormalizedWebhook,
   ProxyMethod,
-  ProxyRequest,
-  ProxyResponse,
+  ProxyRequest as SdkProxyRequest,
+  ProxyResponse as SdkProxyResponse,
 } from "@relayfile/sdk";
-export type { ConnectionProvider, ProxyMethod, ProxyRequest, ProxyResponse } from "@relayfile/sdk";
+export type { ProxyMethod } from "@relayfile/sdk";
 
 export type JsonPrimitive = boolean | number | null | string;
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
@@ -19,6 +19,13 @@ export type ProxyRequestQuery = Record<string, string>;
 export type ProxyRequestBody = JsonValue | string;
 export type ProxyResponseHeaders = Record<string, string>;
 export type ProxyResponseData = JsonValue | string | null;
+
+export interface ProxyRequest extends SdkProxyRequest {
+  providerConfigKey?: string | undefined;
+}
+
+export type ProxyResponse<TData = ProxyResponseData> = SdkProxyResponse<TData>;
+export type ConnectionProvider = SdkConnectionProvider;
 
 export type ProxyRequestInput = ProxyRequest;
 export type ProxyResponseOutput<TData = ProxyResponseData> = ProxyResponse<TData>;

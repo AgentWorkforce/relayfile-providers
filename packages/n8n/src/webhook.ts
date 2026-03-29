@@ -81,13 +81,11 @@ export function normalizeN8nWebhook(rawInput: unknown): NormalizedWebhook {
 
   return {
     provider,
-    event: eventType,
     connectionId,
     eventType,
     objectType,
     objectId,
     payload,
-    raw: rawInput,
     metadata: {
       method: firstString(event.method, "post") ?? "post",
       webhookPath: normalizedPath,

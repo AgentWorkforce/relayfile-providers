@@ -72,7 +72,6 @@ test("src/index.ts resolves the public provider types", () => {
   };
   const typedWebhook: NormalizedWebhook = {
     provider: "github",
-    event: "sync.completed",
     connectionId: "conn_123",
     eventType: "sync.completed",
     objectType: "issue",

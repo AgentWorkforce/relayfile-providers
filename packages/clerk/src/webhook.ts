@@ -67,13 +67,11 @@ export function normalizeClerkWebhookEvent(
 
   return {
     provider: options.providerName ?? "clerk",
-    event: extractEventType(event.type),
     connectionId,
     objectType,
     objectId,
     eventType: extractEventType(event.type),
     payload: event.data,
-    raw: event,
     ...(Object.keys(headerRecord).length > 0 ? { headers: headerRecord } : {}),
     ...(headerRecord["svix-id"] ? { deliveryId: headerRecord["svix-id"] } : {}),
     ...(headerRecord["svix-timestamp"] ? { timestamp: headerRecord["svix-timestamp"] } : {}),
