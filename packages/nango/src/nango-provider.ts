@@ -83,7 +83,10 @@ export class NangoProvider implements ConnectionProvider {
     );
 
     const connection = await getNangoConnection(this.config, connectionId, normalizedOptions);
-    return options === undefined ? (connection?.raw ?? {}) : connection;
+    if (options === undefined) {
+      return connection?.raw ?? null;
+    }
+    return connection;
   }
 
   async getConnectionDetail(
