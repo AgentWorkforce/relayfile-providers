@@ -1,0 +1,42 @@
+{
+  "name": "@relayfile/provider-supabase",
+  "version": "0.1.0",
+  "description": "Relayfile provider for Supabase Auth and Admin API integrations",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "test": "npm run build && node --test \"dist/__tests__/**/*.test.js\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "keywords": [
+    "relayfile",
+    "supabase",
+    "provider",
+    "auth"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@relayfile/sdk": "file:/Users/khaliqgant/Projects/AgentWorkforce-relayfile/packages/sdk/typescript"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

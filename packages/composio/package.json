@@ -1,0 +1,42 @@
+{
+  "name": "@relayfile/provider-composio",
+  "version": "0.1.0",
+  "description": "Relayfile connection provider for Composio-backed integrations.",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/__tests__/*.test.js",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "relayfile",
+    "composio",
+    "provider"
+  ],
+  "dependencies": {
+    "@agent-relay/sdk": "^3.2.22"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
