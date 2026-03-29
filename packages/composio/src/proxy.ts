@@ -190,7 +190,10 @@ export async function lookupActionForRequest(
       toolkitSource = "connected-account";
       return fromConnection;
     }
-    if (controlHeaders.toolkitSlug) return controlHeaders.toolkitSlug;
+    if (controlHeaders.toolkitSlug) {
+      toolkitSource = "explicit-header";
+      return controlHeaders.toolkitSlug;
+    }
     if (request.baseUrl) {
       const resolved = resolveToolkitSlug(request.baseUrl, config.defaultToolset);
       if (resolved) {
