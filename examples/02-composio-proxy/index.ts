@@ -6,13 +6,25 @@
  * connected account when baseUrl is omitted.
  */
 
-import type { ConnectionProvider } from "@relayfile/sdk";
+import type { ConnectionProvider, ProxyRequest } from "@relayfile/sdk";
 import { ComposioProvider } from "@relayfile/provider-composio";
+import { asConnectionProvider } from "../shared/connection-provider";
 
 // ── Config ──────────────────────────────────────────────────────────
 const COMPOSIO_API_KEY = process.env.COMPOSIO_API_KEY ?? "composio-mock-api-key";
 const ENTITY_ID = process.env.COMPOSIO_ENTITY_ID ?? "entity_demo";
 const CONNECTION_ID = process.env.COMPOSIO_CONNECTION_ID ?? "conn_composio_demo";
+
+async function runProxy(
+  provider: ConnectionProvider,
+  label: string,
+  request: ProxyRequest,
+) {
+  console.log(`\n--- ${label} ---`);
+  const response = await provider.proxy(request);
+  console.log("Status:", response.status);
+  console.log("Data:", JSON.stringify(response.data, null, 2));
+}
 
 async function main() {
   // Composio does not require a RelayFileClient — just the API key.
@@ -20,20 +32,18 @@ async function main() {
     apiKey: COMPOSIO_API_KEY,
     // baseUrl defaults to https://backend.composio.dev/api/v3
   });
+  const provider: ConnectionProvider = asConnectionProvider(composio);
 
-  console.log("Provider:", composio.name);
+  console.log("Provider:", provider.name, "(via ConnectionProvider)");
 
   // ── 1. Proxy through connected account ────────────────────────────
   // baseUrl is optional — the provider resolves it from the account.
-  console.log("\n--- Proxy: list GitHub repos via Composio ---");
-  const repos = await composio.proxy({
+  await runProxy(provider, "Proxy: list GitHub repos via Composio", {
     method: "GET",
     endpoint: "/user/repos",
     connectionId: CONNECTION_ID,
     query: { per_page: "5" },
   });
-  console.log("Status:", repos.status);
-  console.log("Data:", JSON.stringify(repos.data, null, 2));
 
   // ── 2. Toolkit / action resolution ────────────────────────────────
   // lookupAction resolves which Composio action maps to a proxy request.

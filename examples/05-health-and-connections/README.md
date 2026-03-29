@@ -1,6 +1,8 @@
 # 05 — Health Checks & Connection Listing
 
 Monitor connection health and list active connections across providers.
+This example starts from the shared `ConnectionProvider.healthCheck()` contract,
+then layers in the extra diagnostics each provider exposes.
 
 ## Key concepts
 
@@ -25,3 +27,11 @@ npx tsx examples/05-health-and-connections/index.ts
 ```
 
 Without real credentials, all calls will fail gracefully with descriptive error messages — useful for seeing the API shape.
+
+## Docker
+
+```bash
+docker run --rm --env-file .env \
+  -v "$PWD":/app -w /app node:20-slim \
+  npx tsx examples/05-health-and-connections/index.ts
+```

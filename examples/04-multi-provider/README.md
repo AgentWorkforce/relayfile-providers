@@ -1,6 +1,9 @@
 # 04 — Multiple Providers
 
 Use different providers for different services in a single application.
+The registry is explicitly typed as `Record<string, ConnectionProvider>` so
+requests can be routed without coupling the rest of the app to any provider's
+concrete class.
 
 ## Key concepts
 
@@ -27,3 +30,11 @@ npx tsx examples/04-multi-provider/index.ts
 ```
 
 The example initializes Nango and Composio (standalone) and shows commented-out stubs for the remaining providers.
+
+## Docker
+
+```bash
+docker run --rm --env-file .env \
+  -v "$PWD":/app -w /app node:20-slim \
+  npx tsx examples/04-multi-provider/index.ts
+```

@@ -5,9 +5,10 @@
  * Each provider handles its own auth; your code just calls proxy().
  */
 
-import type { ConnectionProvider } from "@relayfile/sdk";
+import type { ConnectionProvider, ProxyRequest } from "@relayfile/sdk";
 import { NangoProvider } from "@relayfile/provider-nango";
 import { ComposioProvider } from "@relayfile/provider-composio";
+import { asConnectionProvider } from "../shared/connection-provider";
 
 // Providers that require RelayFileClient:
 // import { RelayFileClient } from "@relayfile/sdk";
@@ -22,8 +23,8 @@ const COMPOSIO_API_KEY = process.env.COMPOSIO_API_KEY ?? "composio-mock-key";
 
 async function main() {
   // ── Standalone providers (no RelayFileClient) ─────────────────────
-  const nango = new NangoProvider({ secretKey: NANGO_SECRET_KEY });
-  const composio = new ComposioProvider({ apiKey: COMPOSIO_API_KEY });
+  const nango = asConnectionProvider(new NangoProvider({ secretKey: NANGO_SECRET_KEY }));
+  const composio = asConnectionProvider(new ComposioProvider({ apiKey: COMPOSIO_API_KEY }));
 
   // ── Providers that need RelayFileClient ───────────────────────────
   // const relayfile = new RelayFileClient({ token: process.env.RELAYFILE_TOKEN! });
@@ -58,7 +59,7 @@ async function main() {
   // ── Route a request to the right provider ─────────────────────────
   async function routeProxy(
     providerName: string,
-    request: Parameters<typeof nango.proxy>[0],
+    request: ProxyRequest,
   ) {
     const provider = providers[providerName];
     if (!provider) throw new Error(`Unknown provider: ${providerName}`);
