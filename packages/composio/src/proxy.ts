@@ -18,17 +18,18 @@ const RESERVED_HEADER_NAMES = new Set([
   "x-composio-user-id",
 ]);
 
-const TOOLKIT_HOSTNAME_MAP: Readonly<Record<string, string>> = {
-  "api.github.com": "github",
-  "github.com": "github",
-  "api.linear.app": "linear",
-  "linear.app": "linear",
-  "slack.com": "slack",
-  "api.slack.com": "slack",
-  "api.atlassian.com": "jira",
-  "api.notion.com": "notion",
+/**
+ * Hostname → toolkit overrides for cases where the heuristic can't
+ * derive the correct Composio toolkit slug from the domain alone.
+ *
+ * Prefer passing `toolkit` explicitly in proxy options instead of
+ * growing this map. The generic heuristic (strip common subdomains,
+ * take first label) handles most services correctly.
+ */
+const TOOLKIT_HOSTNAME_OVERRIDES: Readonly<Record<string, string>> = {
   "www.googleapis.com": "gmail",
   "gmail.googleapis.com": "gmail",
+  "api.atlassian.com": "jira",
 };
 
 const COMMON_SUBDOMAINS = new Set(["api", "app", "graph", "graphql", "rest", "services", "www"]);
@@ -259,9 +260,9 @@ export function resolveToolkitSlug(baseUrl: string, defaultToolset?: ComposioToo
     return undefined;
   }
 
-  const mapped = TOOLKIT_HOSTNAME_MAP[hostname];
-  if (mapped) {
-    return mapped;
+  const override = TOOLKIT_HOSTNAME_OVERRIDES[hostname];
+  if (override) {
+    return override;
   }
 
   if (hostname.endsWith(".atlassian.net")) {
