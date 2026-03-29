@@ -1,7 +1,7 @@
+import { WebhookNormalizationError } from "./errors.js";
 import type { FileSemantics } from "@relayfile/sdk";
 import {
   IntegrationProvider,
-  WebhookNormalizationError,
   computeCanonicalPath,
   type ConnectionProvider,
   type NormalizedWebhook,
@@ -120,7 +120,7 @@ export class SupabaseProvider
     };
   }
 
-  async proxy(request: ProxyRequest): Promise<ProxyResponse> {
+  async proxy<T = unknown>(request: ProxyRequest): Promise<ProxyResponse<T>> {
     const provider = resolveProxyProvider(request);
     const token = await this.getAccessToken(request.connectionId, provider);
     const url = new URL(request.endpoint, request.baseUrl);
@@ -146,7 +146,7 @@ export class SupabaseProvider
     return {
       status: response.status,
       headers: Object.fromEntries(response.headers.entries()),
-      data: await readResponseBody(response),
+      data: await readResponseBody(response) as T,
     };
   }
 

@@ -1,6 +1,5 @@
 import {
   IntegrationProvider,
-  toIngestWebhookInput,
   type ProxyRequest,
   type ProxyResponse,
   type QueuedResponse,
@@ -148,7 +147,10 @@ export class PipedreamProvider extends IntegrationProvider {
     const event = normalizePipedreamWebhook(rawInput);
     return this.client.ingestWebhook({
       workspaceId,
-      ...toIngestWebhookInput(event, getWebhookPath(event)),
+      provider: event.provider,
+      event_type: event.eventType,
+      path: getWebhookPath(event),
+      data: event.payload,
       signal,
     });
   }

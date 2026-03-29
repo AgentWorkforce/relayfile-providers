@@ -1,6 +1,6 @@
+import { WebhookNormalizationError } from "./errors.js";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import {
-  WebhookNormalizationError,
   type NormalizedWebhook,
 } from "@relayfile/sdk";
 import type { SupabaseWebhookPayload } from "./types.js";
