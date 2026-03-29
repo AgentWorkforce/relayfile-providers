@@ -31,6 +31,7 @@ export type ComposioApiQueryValue =
 export type ComposioApiQuery = Record<string, ComposioApiQueryValue>;
 export type NormalizedWebhookPayload = Record<string, unknown>;
 export type ComposioActionLookupSource =
+  | "connected-account"
   | "default-toolset"
   | "derived-base-url"
   | "explicit-header"
