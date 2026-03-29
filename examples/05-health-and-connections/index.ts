@@ -96,7 +96,7 @@ async function main() {
   console.log("\n--- Composio connected accounts ---");
   try {
     const accounts = await composio.listConnectedAccounts();
-    console.log(`Found ${accounts.totalCount} account(s)`);
+    console.log(`Found ${accounts.total} account(s)`);
     for (const acct of accounts.items) {
       console.log(`  - ${acct.id}`);
     }

@@ -54,13 +54,13 @@ async function main() {
     ENTITY_ID,
     { owner: "acme", repo: "api", title: "Filed by relayfile" },
   );
-  console.log("Execution status:", result.status);
+  console.log("Execution successful:", result.successful);
   console.log("Result:", JSON.stringify(result.data, null, 2));
 
   // ── 4. List connected accounts ────────────────────────────────────
   console.log("\n--- Connected accounts ---");
   const accounts = await composio.listConnectedAccounts();
-  console.log("Total:", accounts.totalCount);
+  console.log("Total:", accounts.total);
   for (const account of accounts.items) {
     console.log(`  - ${account.id} (${account.status})`);
   }
