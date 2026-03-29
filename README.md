@@ -16,9 +16,8 @@ npm install @relayfile/sdk @relayfile/provider-nango
 import { RelayFileClient } from "@relayfile/sdk";
 import { NangoProvider } from "@relayfile/provider-nango";
 
-// 1. Connect to your relayfile server
+// 1. Connect to relayfile (defaults to api.relayfile.dev)
 const relayfile = new RelayFileClient({
-  baseUrl: process.env.RELAYFILE_URL!,
   token: process.env.RELAYFILE_TOKEN!,
 });
 
