@@ -179,7 +179,7 @@ export async function lookupActionForRequest(
   request: ProxyRequest,
 ): Promise<ComposioActionLookupResult> {
   const controlHeaders = extractControlHeaders(request.headers);
-  let toolkitSource: "connected-account" | "default-toolset" | "derived-base-url" | undefined;
+  let toolkitSource: "connected-account" | "default-toolset" | "derived-base-url" | "explicit-header" | undefined;
 
   // Resolve toolkit from the connected account first when available; it is the
   // authoritative source for a bound Composio connection. Control headers and
