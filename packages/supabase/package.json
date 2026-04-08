@@ -29,6 +29,14 @@
     "auth"
   ],
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AgentWorkforce/relayfile-providers",
+    "directory": "packages/supabase"
+  },
   "dependencies": {
     "@relayfile/sdk": "^0.1.6"
   },

@@ -19,8 +19,18 @@
     "nango",
     "provider"
   ],
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AgentWorkforce/relayfile-providers",
+    "directory": "packages/nango"
+  },
   "dependencies": {
     "@agent-relay/sdk": "^3.2.22",
     "@relayfile/sdk": "^0.1.6"
