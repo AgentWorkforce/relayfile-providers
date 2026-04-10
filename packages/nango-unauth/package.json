@@ -1,0 +1,43 @@
+{
+  "name": "@relayfile/provider-nango-unauth",
+  "version": "0.1.0",
+  "description": "Unauthenticated Nango provider scaffold for Relayfile",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "test": "npm run build && node --test 'dist/__tests__/**/*.test.js'",
+    "lint": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "relayfile",
+    "nango",
+    "unauth",
+    "provider"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AgentWorkforce/relayfile-providers",
+    "directory": "packages/nango-unauth"
+  },
+  "dependencies": {
+    "@relayfile/provider-nango": "^0.1.0",
+    "@relayfile/sdk": "^0.1.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.0",
+    "typescript": "^5.9.3"
+  }
+}
