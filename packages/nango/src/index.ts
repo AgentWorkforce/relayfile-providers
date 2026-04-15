@@ -1,4 +1,19 @@
 export { NangoProvider, createNangoProvider } from "./nango-provider.js";
+// Unauthenticated variant — merged in from the former
+// @relayfile/provider-nango-unauth package. Kept in the same module so
+// consumers that need both auth and unauth flows import from a single
+// package. Same deps, same Nango SDK base class.
+export {
+  NangoUnauthProvider,
+  createNangoUnauthProvider,
+} from "./nango-unauth-provider.js";
+export type {
+  NangoUnauthAuthHeaders,
+  NangoUnauthCredentialRefreshContext,
+  NangoUnauthCredentialRefreshFn,
+  NangoUnauthCredentials,
+  NangoUnauthProviderConfig,
+} from "./nango-unauth-provider.js";
 // Re-export workflow modules through the public barrel so downstream adapters
 // can depend on stable entrypoints as the provider grows.
 export {

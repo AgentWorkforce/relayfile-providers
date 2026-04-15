@@ -5,7 +5,7 @@ import {
   createNangoUnauthProvider,
   type NangoUnauthCredentials,
 } from "../nango-unauth-provider.js";
-import type { ProxyRequest } from "@relayfile/provider-nango";
+import type { ProxyRequest } from "../types.js";
 
 describe("NangoUnauthProvider", () => {
   it("reads credential headers from metadataKey during proxy()", async () => {

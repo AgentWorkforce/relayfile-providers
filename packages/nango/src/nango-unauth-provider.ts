@@ -1,15 +1,13 @@
-import {
-  NangoConfigurationError,
-  NangoProvider,
-  deriveProviderConfigKey,
-} from "@relayfile/provider-nango";
+import { NangoConfigurationError } from "./errors.js";
+import { NangoProvider } from "./nango-provider.js";
+import { deriveProviderConfigKey } from "./proxy.js";
 import type {
   NangoConnection,
   NangoGetConnectionOptions,
   NangoProviderConfig,
   ProxyRequest,
   ProxyResponse,
-} from "@relayfile/provider-nango";
+} from "./types.js";
 
 const DEFAULT_METADATA_KEY = "credentials";
 
