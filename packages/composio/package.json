@@ -22,7 +22,8 @@
     "build": "npm run clean && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --import tsx --test 'src/__tests__/*.test.ts'",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "relayfile",

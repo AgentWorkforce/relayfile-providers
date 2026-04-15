@@ -22,7 +22,8 @@
     "clean": "rm -rf dist",
     "build": "npm run clean && tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test 'dist/__tests__/*.test.js'"
+    "test": "npm run build && node --test 'dist/__tests__/*.test.js'",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "relayfile",

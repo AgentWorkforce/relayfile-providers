@@ -1,7 +1,7 @@
 {
   "name": "@relayfile/provider-nango",
-  "version": "0.1.0",
-  "description": "Nango provider scaffold for Relayfile",
+  "version": "0.2.0",
+  "description": "Nango provider for Relayfile (authenticated + unauthenticated flows)",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,7 +12,8 @@
     "build": "rm -rf dist && tsc -p tsconfig.json",
     "test": "npm run build && node --test 'dist/__tests__/**/*.test.js'",
     "lint": "tsc --noEmit -p tsconfig.json",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "relayfile",
