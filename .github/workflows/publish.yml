@@ -60,11 +60,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "22.14.0"
           cache: npm
           registry-url: "https://registry.npmjs.org"
 
       - run: npm ci
+
+      - name: Upgrade npm
+        run: npm install -g npm@latest
 
       - name: Build all packages
         run: npx turbo build
@@ -79,8 +82,6 @@ jobs:
           fi
 
       - name: Version & Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           for pkg in ${{ steps.resolve.outputs.packages }}; do
             cd packages/$pkg
