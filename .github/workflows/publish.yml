@@ -91,7 +91,7 @@ jobs:
               echo "DRY RUN: $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
               npm publish --dry-run --access public --tag ${{ github.event.inputs.tag }}
             else
-              npm publish --access public --provenance --tag ${{ github.event.inputs.tag }} --ignore-scripts
+              npm publish --access public --provenance --tag ${{ github.event.inputs.tag }}
               echo "Published $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
             fi
 
