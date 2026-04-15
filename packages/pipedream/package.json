@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-pipedream",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Pipedream provider for Relayfile with generic provider hooks and Pipedream Connect convenience methods.",
   "type": "module",
   "main": "./dist/index.js",
