@@ -45,18 +45,18 @@ export {
 } from "./webhook.js";
 export * as NotionIngestHandler from "./notion-ingest-handler.js";
 export * as NotionIngestAudit from "./notion-ingest-audit.js";
-export * as NotionRecordsClient from "./notion-records-client.js";
+export * as NangoRecordsClient from "./nango-records-client.js";
 export * from "./notion-ingest-handler.js";
 export * from "./notion-ingest-audit.js";
 export * from "./notion-ingest-schema.js";
-export { fetchNangoRecords } from "./notion-records-client.js";
+export { fetchNangoRecords } from "./nango-records-client.js";
 export type {
   FetchNangoRecordsArgs,
   FetchNangoRecordsInput,
   NangoRecord,
   NangoRecordAction,
   NangoRecordMetadata as NangoClientRecordMetadata,
-} from "./notion-records-client.js";
+} from "./nango-records-client.js";
 export {
   NangoConfigurationError,
   NangoConnectionError,

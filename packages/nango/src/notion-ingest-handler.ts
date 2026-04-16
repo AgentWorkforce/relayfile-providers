@@ -8,7 +8,7 @@ import {
   type NotionRecordAction,
   type NotionSupportedModel,
 } from "./notion-ingest-schema.js";
-import type { fetchNangoRecords } from "./notion-records-client.js";
+import type { fetchNangoRecords } from "./nango-records-client.js";
 
 export type NotionIngestResult = {
   filesWritten: number;

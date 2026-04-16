@@ -11,7 +11,7 @@ import type {
   FetchNangoRecordsArgs,
   NangoRecord,
   fetchNangoRecords,
-} from "../notion-records-client.js";
+} from "../nango-records-client.js";
 
 const WORKSPACE_ID = "workspace_123";
 const CONNECTION_ID = "conn_notion_test_001";
