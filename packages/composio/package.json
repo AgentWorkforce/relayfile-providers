@@ -31,10 +31,10 @@
     "provider"
   ],
   "dependencies": {
-    "@agent-relay/sdk": "^6.0.7",
     "@relayfile/sdk": "^0.6.0"
   },
   "devDependencies": {
+    "@agent-relay/sdk": "^6.0.7",
     "@types/node": "^24.5.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.2"
