@@ -33,10 +33,10 @@
     "directory": "packages/nango"
   },
   "dependencies": {
-    "@agent-relay/sdk": "^3.2.22",
+    "@agent-relay/sdk": "^6.0.6",
     "@nangohq/node": "^0.69.50",
-    "@relayfile/adapter-notion": "^0.1.0",
-    "@relayfile/sdk": "^0.1.6",
+    "@relayfile/adapter-notion": "^0.1.9",
+    "@relayfile/sdk": "^0.6.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

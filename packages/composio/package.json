@@ -31,8 +31,8 @@
     "provider"
   ],
   "dependencies": {
-    "@agent-relay/sdk": "^3.2.22",
-    "@relayfile/sdk": "^0.1.6"
+    "@agent-relay/sdk": "^6.0.6",
+    "@relayfile/sdk": "^0.6.0"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",

@@ -44,7 +44,7 @@
     "directory": "packages/clerk"
   },
   "dependencies": {
-    "@relayfile/sdk": "^0.1.6",
+    "@relayfile/sdk": "^0.6.0",
     "jose": "^6.2.2",
     "svix": "^1.89.0"
   },
