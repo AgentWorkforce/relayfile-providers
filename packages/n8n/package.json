@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-n8n",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Relayfile connection provider for self-hosted n8n instances.",
   "license": "MIT",
   "type": "module",

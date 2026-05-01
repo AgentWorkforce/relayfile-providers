@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-composio",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Relayfile connection provider for Composio-backed integrations.",
   "license": "MIT",
   "type": "module",
