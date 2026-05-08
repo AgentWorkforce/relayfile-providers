@@ -21,6 +21,7 @@ import type {
   NangoConnectionHealthResult,
   NangoConnectSessionInput,
   NangoConnectSessionResult,
+  NangoDeleteConnectionOptions,
   NangoGetConnectionOptions,
   NangoConnectionListResult,
   NangoListConnectionsOptions,
@@ -144,7 +145,7 @@ export class NangoProvider implements ConnectionProvider {
 
   async deleteConnection(
     connectionId: string,
-    options: NangoGetConnectionOptions = {},
+    options: NangoDeleteConnectionOptions = {},
   ): Promise<boolean> {
     return deleteNangoConnection(this.config, connectionId, {
       providerConfigKey: options.providerConfigKey ?? this.config.providerConfigKey,
