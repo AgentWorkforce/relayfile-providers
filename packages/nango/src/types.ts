@@ -58,6 +58,22 @@ export interface NangoConnectionServiceConfig {
   fetch?: typeof fetch | undefined;
 }
 
+export interface NangoConnectSessionInput {
+  endUserId: string;
+  endUserEmail?: string | null | undefined;
+  endUserTags?: JsonObject | undefined;
+  tags?: JsonObject | undefined;
+  allowedIntegrations?: string[] | undefined;
+}
+
+export interface NangoConnectSessionResult {
+  token: string;
+  expiresAt: string;
+  connectLink: string;
+  connectionId?: string | undefined;
+  raw: JsonObject;
+}
+
 export interface NangoConnectionCredentials extends JsonObject {
   status?: string | undefined;
   type?: string | undefined;
@@ -210,6 +226,10 @@ export interface NangoListConnectionsOptions {
 }
 
 export interface NangoGetConnectionOptions {
+  providerConfigKey?: string | undefined;
+}
+
+export interface NangoDeleteConnectionOptions {
   providerConfigKey?: string | undefined;
 }
 

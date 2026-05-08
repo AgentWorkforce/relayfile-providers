@@ -1,4 +1,10 @@
-import { getNangoConnection, getNangoConnectionDetail, listNangoConnections } from "./connections.js";
+import {
+  deleteNangoConnection,
+  getNangoConnection,
+  getNangoConnectionDetail,
+  listNangoConnections,
+} from "./connections.js";
+import { createNangoConnectSession } from "./connect-session.js";
 import { NangoConfigurationError } from "./errors.js";
 import {
   DEFAULT_NANGO_BASE_URL,
@@ -13,6 +19,8 @@ import type {
   NangoConnection,
   NangoConnectionDetailResult,
   NangoConnectionHealthResult,
+  NangoConnectSessionInput,
+  NangoConnectSessionResult,
   NangoGetConnectionOptions,
   NangoConnectionListResult,
   NangoListConnectionsOptions,
@@ -66,6 +74,10 @@ export class NangoProvider implements ConnectionProvider {
     // without widening the provider class surface.
     const { providerConfigKey } = this.config;
     return normalizeNangoWebhook(rawPayload, providerConfigKey);
+  }
+
+  async createConnectSession(input: NangoConnectSessionInput): Promise<NangoConnectSessionResult> {
+    return createNangoConnectSession(this.config, input);
   }
 
   async getConnection(connectionId: string): Promise<Record<string, unknown>>;
@@ -128,6 +140,15 @@ export class NangoProvider implements ConnectionProvider {
       return result.connections;
     }
     return result.connections.map((connection) => connection.raw);
+  }
+
+  async deleteConnection(
+    connectionId: string,
+    options: NangoGetConnectionOptions = {},
+  ): Promise<boolean> {
+    return deleteNangoConnection(this.config, connectionId, {
+      providerConfigKey: options.providerConfigKey ?? this.config.providerConfigKey,
+    });
   }
 }
 
