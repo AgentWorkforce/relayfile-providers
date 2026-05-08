@@ -12,6 +12,7 @@ import type {
   NangoConnectionMetadata,
   NangoConnectionResponseShape,
   NangoConnectionServiceConfig,
+  NangoDeleteConnectionOptions,
   NangoGetConnectionOptions,
   NangoListConnectionsOptions
 } from "./types.js";
@@ -140,6 +141,61 @@ export async function getNangoConnectionDetail(
     connectionMetadata: connection?.connectionMetadata ?? null,
     raw: payload
   };
+}
+
+export async function deleteNangoConnection(
+  config: NangoConnectionServiceConfig,
+  connectionId: string,
+  options: NangoDeleteConnectionOptions = {}
+): Promise<boolean> {
+  const trimmedConnectionId = connectionId.trim();
+
+  if (!trimmedConnectionId) {
+    throw new Error("A connectionId is required to delete a Nango connection.");
+  }
+
+  return requestOk(
+    config,
+    [`/connections/${encodeURIComponent(trimmedConnectionId)}`, `/connection/${encodeURIComponent(trimmedConnectionId)}`],
+    {
+      provider_config_key: options.providerConfigKey
+    },
+    { method: "DELETE", allowNotFound: true }
+  );
+}
+
+export function findNangoInstallationId(value: unknown): string | null {
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const found = findNangoInstallationId(entry);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  for (const [key, entry] of Object.entries(value)) {
+    if (
+      (key === "installation_id" || key === "installationId" || key === "github_installation_id") &&
+      (typeof entry === "string" || typeof entry === "number")
+    ) {
+      return String(entry);
+    }
+  }
+
+  for (const entry of Object.values(value)) {
+    const found = findNangoInstallationId(entry);
+    if (found) {
+      return found;
+    }
+  }
+
+  return null;
 }
 
 export function normalizeNangoConnection(
@@ -460,6 +516,47 @@ async function requestJson<T>(
 
   if (options.allowNotFound && lastNotFound) {
     return null;
+  }
+
+  throw new Error(`Nango request failed for ${paths[0]}: 404 Not Found`);
+}
+
+async function requestOk(
+  config: NangoConnectionServiceConfig,
+  paths: string[],
+  query: Record<string, string | number | undefined>,
+  options: { method: string; allowNotFound?: boolean }
+): Promise<boolean> {
+  const baseUrl = normalizeBaseUrl(config.baseUrl);
+  const secretKey = config.secretKey.trim();
+
+  if (!secretKey) {
+    throw new Error("A Nango secretKey is required.");
+  }
+
+  for (const path of paths) {
+    const url = buildUrl(baseUrl, path, query);
+    const response = await getFetch(config)(url, {
+      method: options.method,
+      headers: {
+        accept: "application/json",
+        authorization: `Bearer ${secretKey}`
+      }
+    });
+
+    if (response.status === 404) {
+      continue;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Nango request failed for ${path}: ${response.status} ${response.statusText}`);
+    }
+
+    return true;
+  }
+
+  if (options.allowNotFound) {
+    return false;
   }
 
   throw new Error(`Nango request failed for ${paths[0]}: 404 Not Found`);

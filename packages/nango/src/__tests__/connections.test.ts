@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  deleteNangoConnection,
   extractNangoConnectionMetadata,
+  findNangoInstallationId,
   getNangoConnectionDetail,
   getNangoConnection,
   listNangoConnections,
@@ -486,6 +488,58 @@ describe("getNangoConnection", () => {
     assert.equal(connection, null);
     assert.equal(server.callsFor("GET", "/connections/conn_missing").length, 2);
     assert.equal(server.callsFor("GET", "/connection/conn_missing").length, 2);
+  });
+});
+
+describe("deleteNangoConnection", () => {
+  it("deletes a connection with the provider config key query", async () => {
+    const server = createMockNangoServer({ baseUrl: "https://api.nango.test" });
+    const config = createConnectionServiceConfig({
+      baseUrl: server.baseUrl,
+      fetch: server.fetch,
+      secretKey: "test-secret",
+    });
+    server.json("DELETE", "/connections/conn_123", { success: true });
+
+    const deleted = await deleteNangoConnection(config, "conn_123", {
+      providerConfigKey: "github-relay",
+    });
+
+    assert.equal(deleted, true);
+    const [call] = server.callsFor("DELETE", "/connections/conn_123");
+    assert.ok(call);
+    assert.deepEqual(call.searchParams.provider_config_key, ["github-relay"]);
+  });
+
+  it("falls back to the legacy singular endpoint and returns false on 404", async () => {
+    const server = createMockNangoServer({ baseUrl: "https://api.nango.test" });
+    const config = createConnectionServiceConfig({
+      baseUrl: server.baseUrl,
+      fetch: server.fetch,
+      secretKey: "test-secret",
+    });
+    server.error("DELETE", "/connections/missing", 404, { error: "not_found" });
+    server.error("DELETE", "/connection/missing", 404, { error: "not_found" });
+
+    const deleted = await deleteNangoConnection(config, "missing");
+
+    assert.equal(deleted, false);
+    assert.equal(server.callsFor("DELETE").length, 2);
+  });
+});
+
+describe("findNangoInstallationId", () => {
+  it("finds GitHub installation ids nested in Nango connection payloads", () => {
+    assert.equal(
+      findNangoInstallationId({
+        connection: {
+          metadata: {
+            nested: [{ github_installation_id: 12345 }],
+          },
+        },
+      }),
+      "12345",
+    );
   });
 });
 

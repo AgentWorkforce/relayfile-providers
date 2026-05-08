@@ -33,11 +33,14 @@ export {
 } from "./health.js";
 export {
   extractNangoConnectionMetadata,
+  deleteNangoConnection,
+  findNangoInstallationId,
   getNangoConnectionDetail,
   getNangoConnection,
   listNangoConnections,
   normalizeNangoConnection,
 } from "./connections.js";
+export { createNangoConnectSession } from "./connect-session.js";
 export {
   extractForwardMetadata,
   normalizeNangoWebhook,
@@ -98,6 +101,9 @@ export type {
   NangoConnectionCredentials,
   NangoConnectionDetailResult,
   NangoConnectionDetailPayload,
+  NangoConnectSessionInput,
+  NangoConnectSessionResult,
+  NangoDeleteConnectionOptions,
   NangoConnectionErrorShape,
   NangoConnectionHealthDetails,
   NangoConnectionHealthEvaluationOptions,
