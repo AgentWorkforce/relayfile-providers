@@ -1,8 +1,14 @@
+<p align="center">
+  <img src="assets/banner.png" alt="Relayfile Providers — auth, proxy, and webhook plumbing for the relayfile filesystem" />
+</p>
+
 # Relayfile Providers
 
-Auth and credential management for external services. Providers handle OAuth tokens, API proxying, webhook subscriptions, and connection health checks.
+**Plug auth and API proxying into the relayfile filesystem — one provider integration unlocks every app it supports.**
 
-Used with [relayfile adapters](https://github.com/AgentWorkforce/relayfile-adapters) to connect external services to the relayfile VFS.
+Providers are the auth and transport layer for [relayfile](https://github.com/AgentWorkforce/relayfile). They handle OAuth tokens, API proxying, webhook subscriptions, and connection health for external services. Paired with [adapters](https://github.com/AgentWorkforce/relayfile-adapters) and [relayfile core](https://github.com/AgentWorkforce/relayfile), they expose every connected SaaS as a directory your agents can read and write.
+
+Why providers matter: each provider integration is a multiplicative ceiling on what you can mount. One Nango provider package gives you auth + API access to ~200 apps. One Composio integration unlocks ~250. One Pipedream Connect integration covers 2000+. You don't write provider code per app — the provider handles all of them through one normalized auth surface. **This is the structural reason relayfile's resource ceiling beats per-resource VFS implementations: linear in-tree code grows linearly; one provider grows by hundreds.**
 
 ## Quick Start
 
@@ -102,6 +108,22 @@ const pipedream = new PipedreamProvider(relayfile, {
 });
 ```
 
+## Why this scales
+
+Relayfile's coverage isn't bounded by how fast we can land in-tree code for each new SaaS. It's bounded by how many providers exist — and each provider already covers a long tail of apps.
+
+| One provider integration | Apps unlocked (approx.) |
+|---|---|
+| `@relayfile/provider-nango` | ~200 apps via [Nango](https://nango.dev) |
+| `@relayfile/provider-composio` | ~250 apps via [Composio](https://composio.dev) |
+| `@relayfile/provider-pipedream` | 2000+ apps via [Pipedream Connect](https://pipedream.com/connect) |
+| `@relayfile/provider-clerk` | Every social provider Clerk supports |
+| `@relayfile/provider-n8n` | 400+ credential types via [n8n](https://n8n.io) |
+
+Compare to the typical "VFS for agents" approach, where every backend (S3, Postgres, Slack, …) is its own in-tree resource. That model scales linearly with engineering effort: one PR per new SaaS. The provider model scales multiplicatively: one PR per provider, hundreds of apps unlocked. Add a new adapter and it instantly works against any provider already wired in.
+
+That's the architectural lever. Code count stays small; the surface area grows by the size of the provider's catalog.
+
 ## What Agents See
 
 Agents never interact with providers — or any code at all. They just write files:
@@ -189,6 +211,12 @@ npm install
 npx turbo build
 npx turbo test
 ```
+
+## How this compares
+
+Other "give agents a filesystem" projects exist (e.g. [Mirage](https://github.com/strukto-ai/mirage)), and their work in this space is good. Their model is per-resource: each backend (S3, Postgres, Slack, …) is implemented in-tree as a resource type. That works well for storage and infra primitives.
+
+Relayfile's model splits **what's mounted** (the [adapters](https://github.com/AgentWorkforce/relayfile-adapters)) from **how auth and API calls happen** (this repo's providers). One provider package authenticates against hundreds of apps. The result is a structurally larger ceiling for SaaS coverage — and a smaller per-app code footprint. Different shapes, different scopes; pick the one your work lives in.
 
 ## License
 
