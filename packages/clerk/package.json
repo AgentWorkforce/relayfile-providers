@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-clerk",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Clerk provider for Relayfile",
   "type": "module",
   "main": "./dist/index.js",

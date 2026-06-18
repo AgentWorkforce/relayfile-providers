@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-nango",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Nango provider for Relayfile (authenticated + unauthenticated flows)",
   "type": "module",
   "main": "./dist/index.js",
