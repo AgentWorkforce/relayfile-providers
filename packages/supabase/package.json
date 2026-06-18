@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-supabase",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Relayfile provider for Supabase Auth and Admin API integrations",
   "type": "module",
   "main": "./dist/index.js",
@@ -39,7 +39,7 @@
     "directory": "packages/supabase"
   },
   "dependencies": {
-    "@relayfile/sdk": "^0.6.0"
+    "@relayfile/sdk": "^0.10.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.1",

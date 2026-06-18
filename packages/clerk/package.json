@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-clerk",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Clerk provider for Relayfile",
   "type": "module",
   "main": "./dist/index.js",
@@ -44,7 +44,7 @@
     "directory": "packages/clerk"
   },
   "dependencies": {
-    "@relayfile/sdk": "^0.6.0",
+    "@relayfile/sdk": "^0.10.1",
     "jose": "^6.2.2",
     "svix": "^1.89.0"
   },

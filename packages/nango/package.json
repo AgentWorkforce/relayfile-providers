@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-nango",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Nango provider for Relayfile (authenticated + unauthenticated flows)",
   "type": "module",
   "main": "./dist/index.js",
@@ -35,7 +35,7 @@
   "dependencies": {
     "@nangohq/node": "^0.69.50",
     "@relayfile/adapter-notion": "^0.1.10",
-    "@relayfile/sdk": "^0.6.0",
+    "@relayfile/sdk": "^0.10.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
