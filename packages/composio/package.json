@@ -1,6 +1,6 @@
 {
   "name": "@relayfile/provider-composio",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Relayfile connection provider for Composio-backed integrations.",
   "license": "MIT",
   "type": "module",
@@ -31,7 +31,7 @@
     "provider"
   ],
   "dependencies": {
-    "@relayfile/sdk": "^0.6.0"
+    "@relayfile/sdk": "^0.10.1"
   },
   "devDependencies": {
     "@agent-relay/sdk": "^6.0.7",
