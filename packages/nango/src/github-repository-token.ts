@@ -21,7 +21,8 @@ export type GithubRepositoryToken = {
 };
 
 const permissions = { contents: "write", pull_requests: "write" } as const;
-const coordinate = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
+const ownerCoordinate = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
+const repositoryCoordinate = /^[A-Za-z0-9_.-]{1,100}$/;
 
 function record(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -81,7 +82,7 @@ export async function mintGithubRepositoryToken(
 ): Promise<GithubRepositoryToken> {
   if (!config.secretKey || !input.providerConfigKey || !input.connectionId ||
       !/^[1-9][0-9]*$/.test(input.installationId) ||
-      !coordinate.test(input.owner) || !coordinate.test(input.repo) ||
+      !ownerCoordinate.test(input.owner) || !repositoryCoordinate.test(input.repo) || input.repo === "." || input.repo === ".." ||
       !/^[a-f0-9]{40}$/.test(input.baseSha) || !input.baseBranch ||
       (input.repositoryId !== undefined && (!Number.isSafeInteger(input.repositoryId) || input.repositoryId <= 0))) {
     return fail("invalid_request");

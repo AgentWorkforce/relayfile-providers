@@ -39,6 +39,19 @@ describe("repository-scoped GitHub App token", () => {
     assert.equal(new Headers(h.calls[2]!.init.headers).get("authorization"), "Bearer private-app-jwt");
     assert.equal(JSON.stringify(h.calls).includes("wide-token-never-export"), false);
   });
+  for (const repo of [".github", "_service"]) it(`accepts valid repository name ${repo}`, async () => {
+    const h = harness({ "/installation/repositories": { total_count: 1, repositories: [{ id: 7, full_name: `example/${repo}` }] } });
+    const request = h.config.fetch;
+    h.config.fetch = (async (url, init) => request(String(url).replace(`/repos/example/${repo}/`, "/repos/example/project/"), init)) as typeof fetch;
+    const result = await mintGithubRepositoryToken(h.config, { ...input, repo });
+    assert.equal(result.repositoryId, 7);
+    assert.deepEqual(JSON.parse(h.calls[2]!.init.body as string).repositories, [repo]);
+  });
+  for (const repo of [".", ".."]) it(`rejects path segment ${repo} before credential retrieval`, async () => {
+    const h = harness();
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, repo }), /invalid_request/);
+    assert.equal(h.calls.length, 0);
+  });
   it("pins the numeric repository identity on later minting", async () => {
     const h = harness(); await mintGithubRepositoryToken(h.config, { ...input, repositoryId: 7 });
     assert.deepEqual(JSON.parse(h.calls[2]!.init.body as string).repository_ids, [7]);
