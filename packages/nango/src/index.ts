@@ -41,6 +41,8 @@ export {
   normalizeNangoConnection,
 } from "./connections.js";
 export { createNangoConnectSession } from "./connect-session.js";
+export { mintGithubRepositoryToken, revokeGithubRepositoryToken } from "./github-repository-token.js";
+export type { GithubRepositoryToken, GithubRepositoryTokenRequest } from "./github-repository-token.js";
 export {
   extractForwardMetadata,
   normalizeNangoWebhook,
