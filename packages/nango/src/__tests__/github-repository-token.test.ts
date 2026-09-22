@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { mintGithubRepositoryToken } from "../github-repository-token.js";
+import { GithubRepositoryTokenError, mintGithubRepositoryToken } from "../github-repository-token.js";
 
 const input = { providerConfigKey: "github-app", connectionId: "connected", installationId: "41",
   owner: "example", repo: "project", baseBranch: "main", baseSha: "a".repeat(40) };
@@ -22,6 +22,7 @@ function harness(overrides: Record<string, unknown> = {}) {
     if (parsed.pathname === "/installation/token") return new Response(null, { status: 204 });
     const value = payloads[parsed.pathname];
     if (value instanceof Error) throw value;
+    if (value instanceof Response) return value;
     assert.ok(value, `unexpected request ${parsed.pathname}`);
     return Response.json(value);
   }) as typeof fetch;
@@ -110,5 +111,73 @@ describe("repository-scoped GitHub App token", () => {
       assert.equal((error as Error).message, "GitHub repository token: transport_failed"); return true;
     });
     assert.equal(h.calls.length, 3);
+  });
+});
+
+describe("repository-scoped GitHub App token: workflows opt-in", () => {
+  const withWorkflows = { id: 41, permissions: { contents: "write", pull_requests: "write", workflows: "write", metadata: "read" } };
+  const mintedWithWorkflows = () => ({ ...minted(), permissions: { ...minted().permissions, workflows: "write" } });
+  const optedIn = () => harness({ "/repos/example/project/installation": withWorkflows,
+    "/app/installations/41/access_tokens": mintedWithWorkflows() });
+
+  for (const [name, extra] of [["omitted", {}], ["false", { workflows: false }]] as const) {
+    it(`sends today's exact request and returns no workflows claim when ${name}`, async () => {
+      // Even an installation that holds workflows gets the narrow request.
+      const h = harness({ "/repos/example/project/installation": withWorkflows });
+      const result = await mintGithubRepositoryToken(h.config, { ...input, ...extra });
+      assert.equal(h.calls[2]!.init.body, JSON.stringify({ repositories: ["project"], permissions: { contents: "write", pull_requests: "write" } }));
+      assert.equal("workflows" in result, false);
+    });
+  }
+  it("keeps the default verification strict: a workflows grant it did not ask for is refused and revoked", async () => {
+    const h = harness({ "/app/installations/41/access_tokens": mintedWithWorkflows() });
+    await assert.rejects(mintGithubRepositoryToken(h.config, input), /token_authority_mismatch/);
+    assert.equal(h.calls.at(-1)!.init.method, "DELETE");
+  });
+  it("requests and verifies contents, pull_requests and workflows write", async () => {
+    const h = optedIn();
+    const result = await mintGithubRepositoryToken(h.config, { ...input, workflows: true });
+    assert.equal(h.calls[2]!.init.body, JSON.stringify({ repositories: ["project"], permissions: { contents: "write", pull_requests: "write", workflows: "write" } }));
+    assert.equal(result.workflows, true);
+    assert.equal(result.token, "private-scoped-token");
+    assert.equal(h.calls.some((call) => call.init.method === "DELETE"), false);
+  });
+  for (const [name, installation] of [
+    ["no workflows permission", { id: 41, permissions: { contents: "write", pull_requests: "write", metadata: "read" } }],
+    ["read-only workflows", { id: 41, permissions: { contents: "write", pull_requests: "write", workflows: "read" } }],
+    ["no permissions field", { id: 41 }],
+  ] as const) it(`refuses before minting when the installation has ${name}`, async () => {
+    const h = harness({ "/repos/example/project/installation": installation });
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, workflows: true }), (error) => {
+      assert.ok(error instanceof GithubRepositoryTokenError);
+      assert.equal(error.code, "workflows_permission_not_granted");
+      assert.equal(error.message, "GitHub repository token: workflows_permission_not_granted");
+      return true;
+    });
+    assert.equal(h.calls.length, 2, "no token was minted");
+  });
+  it("revokes a token GitHub minted without the requested workflows permission", async () => {
+    const h = harness({ "/repos/example/project/installation": withWorkflows });
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, workflows: true }), /workflows_permission_not_granted/);
+    assert.equal(new URL(h.calls.at(-1)!.url).pathname, "/installation/token");
+    assert.equal(h.calls.at(-1)!.init.method, "DELETE");
+  });
+  it("refuses and revokes an opted-in token carrying anything beyond workflows", async () => {
+    const h = harness({ "/repos/example/project/installation": withWorkflows,
+      "/app/installations/41/access_tokens": { ...mintedWithWorkflows(), permissions: { ...mintedWithWorkflows().permissions, administration: "write" } } });
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, workflows: true }), /token_authority_mismatch/);
+    assert.equal(h.calls.at(-1)!.init.method, "DELETE");
+  });
+  it("surfaces GitHub refusing the permission at mint time as a redacted upstream status", async () => {
+    const h = harness({ "/repos/example/project/installation": withWorkflows,
+      "/app/installations/41/access_tokens": Response.json({ message: "The permissions requested are not granted to this installation." }, { status: 422 }) });
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, workflows: true }), (error) => {
+      assert.equal((error as Error).message, "GitHub repository token: upstream_status_422"); return true;
+    });
+  });
+  it("rejects a non-boolean workflows option before credential retrieval", async () => {
+    const h = harness();
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, workflows: "true" as unknown as boolean }), /invalid_request/);
+    assert.equal(h.calls.length, 0);
   });
 });

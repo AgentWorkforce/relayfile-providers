@@ -10,6 +10,15 @@ export type GithubRepositoryTokenRequest = {
   baseBranch: string;
   baseSha: string;
   repositoryId?: number;
+  /**
+   * Also request `workflows: "write"`, so the token can create or update
+   * `.github/workflows/**`. Off by default: a caller opts in only for an
+   * owner-approved destination. The App installation must already hold
+   * "Workflows: read and write"; when it does not, minting fails with
+   * `workflows_permission_not_granted` instead of returning a narrower token
+   * than was asked for.
+   */
+  workflows?: boolean;
 };
 
 export type GithubRepositoryToken = {
@@ -18,9 +27,36 @@ export type GithubRepositoryToken = {
   installationId: string;
   repositoryId: number;
   repositoryScoped: true;
+  /** Present, and `true`, only when `workflows: true` was requested and verified. */
+  workflows?: true;
 };
 
+/** Stable failure codes; the message is always `GitHub repository token: <code>`. */
+export type GithubRepositoryTokenErrorCode =
+  | "invalid_request"
+  | "unsafe_nango_origin"
+  | "transport_failed"
+  | "invalid_response"
+  | "connection_authority_mismatch"
+  | "installation_mismatch"
+  | "workflows_permission_not_granted"
+  | "missing_token"
+  | "token_authority_mismatch"
+  | "repository_scope_mismatch"
+  | "base_moved"
+  | "validation_failed_cleanup_failed"
+  | `upstream_status_${number}`;
+
+export class GithubRepositoryTokenError extends Error {
+  constructor(readonly code: GithubRepositoryTokenErrorCode) {
+    super(`GitHub repository token: ${code}`);
+    this.name = "GithubRepositoryTokenError";
+  }
+}
+
+// The default request is exactly this object; the opt-in adds one key.
 const permissions = { contents: "write", pull_requests: "write" } as const;
+const workflowPermissions = { ...permissions, workflows: "write" } as const;
 const ownerCoordinate = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
 const repositoryCoordinate = /^[A-Za-z0-9_.-]{1,100}$/;
 
@@ -29,9 +65,9 @@ function record(value: unknown): Record<string, unknown> {
     ? value as Record<string, unknown> : {};
 }
 
-function fail(code: string): never {
+function fail(code: GithubRepositoryTokenErrorCode): never {
   // Never include upstream bodies, credentials, URLs, or nested fetch errors.
-  throw new Error(`GitHub repository token: ${code}`);
+  throw new GithubRepositoryTokenError(code);
 }
 
 async function request(
@@ -84,7 +120,8 @@ export async function mintGithubRepositoryToken(
       !/^[1-9][0-9]*$/.test(input.installationId) ||
       !ownerCoordinate.test(input.owner) || !repositoryCoordinate.test(input.repo) || input.repo === "." || input.repo === ".." ||
       !/^[a-f0-9]{40}$/.test(input.baseSha) || !input.baseBranch ||
-      (input.repositoryId !== undefined && (!Number.isSafeInteger(input.repositoryId) || input.repositoryId <= 0))) {
+      (input.repositoryId !== undefined && (!Number.isSafeInteger(input.repositoryId) || input.repositoryId <= 0)) ||
+      (input.workflows !== undefined && typeof input.workflows !== "boolean")) {
     return fail("invalid_request");
   }
   const base = new URL(config.baseUrl ?? "https://api.nango.dev");
@@ -107,20 +144,31 @@ export async function mintGithubRepositoryToken(
   if (String(installation.id) !== input.installationId || installation.suspended_at != null) {
     return fail("installation_mismatch");
   }
+  const workflows = input.workflows === true;
+  // GitHub either refuses (422) or silently drops a permission the
+  // installation lacks. Check the installation's own grant first so a missing
+  // "Workflows" App permission is named, and nothing is minted for it.
+  if (workflows && record(installation.permissions).workflows !== "write") {
+    return fail("workflows_permission_not_granted");
+  }
   // Explicit repository and permissions: omitting either widens authority.
   const minted = await request(config, github(`/app/installations/${input.installationId}/access_tokens`), credentials.jwtToken, "POST", {
     ...(input.repositoryId === undefined ? { repositories: [input.repo] } : { repository_ids: [input.repositoryId] }),
-    permissions,
+    permissions: workflows ? workflowPermissions : permissions,
   });
   if (typeof minted.token !== "string" || !minted.token) return fail("missing_token");
   try {
     const expires = typeof minted.expires_at === "string" ? Date.parse(minted.expires_at) : NaN;
     const granted = record(minted.permissions);
+    const expected: readonly string[] = Object.keys(workflows ? workflowPermissions : permissions);
     if (!Number.isFinite(expires) || expires <= Date.now() + 60_000 || expires > Date.now() + 3_660_000 ||
         granted.contents !== "write" || granted.pull_requests !== "write" ||
-        Object.entries(granted).some(([key, value]) => !(["contents", "pull_requests"].includes(key) || (key === "metadata" && value === "read")))) {
+        Object.entries(granted).some(([key, value]) => !(expected.includes(key) || (key === "metadata" && value === "read")))) {
       return fail("token_authority_mismatch");
     }
+    // Asked for workflows and GitHub dropped it: never hand back a token
+    // narrower than the caller's grant says it is.
+    if (workflows && granted.workflows !== "write") return fail("workflows_permission_not_granted");
     const scope = await request(config, github("/installation/repositories?per_page=2"), minted.token);
     const repos = scope.repositories;
     const repo = Array.isArray(repos) && repos.length === 1 ? record(repos[0]) : {};
@@ -133,7 +181,7 @@ export async function mintGithubRepositoryToken(
       return fail("base_moved");
     }
     return { token: minted.token, expiresAt: minted.expires_at as string, installationId: input.installationId,
-      repositoryId: repo.id as number, repositoryScoped: true };
+      repositoryId: repo.id as number, repositoryScoped: true, ...(workflows ? { workflows: true as const } : {}) };
   } catch (error) {
     try { await revokeGithubRepositoryToken(config, minted.token); }
     catch { return fail("validation_failed_cleanup_failed"); }
