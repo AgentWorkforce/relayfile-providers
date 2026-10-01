@@ -14,35 +14,35 @@ export const NangoForwardWebhookEnvelopeSchema = z
     ...NangoWebhookEnvelopeCommonShape,
     type: z.literal("forward"),
   })
-  .passthrough();
+  .loose();
 
 export const NangoAuthWebhookEnvelopeSchema = z
   .object({
     ...NangoWebhookEnvelopeCommonShape,
     type: z.literal("auth"),
   })
-  .passthrough();
+  .loose();
 
 export const NangoConnectionCreatedWebhookEnvelopeSchema = z
   .object({
     ...NangoWebhookEnvelopeCommonShape,
     type: z.literal("connection.created"),
   })
-  .passthrough();
+  .loose();
 
 export const NangoSyncWebhookEnvelopeSchema = z
   .object({
     ...NangoWebhookEnvelopeCommonShape,
     type: z.literal("sync"),
   })
-  .passthrough();
+  .loose();
 
 export const NangoActionWebhookEnvelopeSchema = z
   .object({
     ...NangoWebhookEnvelopeCommonShape,
     type: z.literal("action"),
   })
-  .passthrough();
+  .loose();
 
 export const NangoWebhookEnvelopeSchema = z.discriminatedUnion("type", [
   NangoForwardWebhookEnvelopeSchema,
@@ -58,14 +58,14 @@ export const NangoEndUserSchema = z
     organizationId: z.string().optional(),
     tags: z.record(z.string(), z.string()).optional(),
   })
-  .passthrough();
+  .loose();
 
 export const NangoAuthErrorSchema = z
   .object({
     type: z.string(),
     description: z.string(),
   })
-  .passthrough();
+  .loose();
 
 export const NangoAuthCreationEventSchema = z
   .object({
@@ -80,7 +80,7 @@ export const NangoAuthCreationEventSchema = z
     endUser: NangoEndUserSchema.optional(),
     error: NangoAuthErrorSchema.optional(),
   })
-  .passthrough();
+  .loose();
 
 export const NangoSyncResponseResultsSchema = z
   .object({
@@ -88,7 +88,7 @@ export const NangoSyncResponseResultsSchema = z
     updated: z.number().int().nonnegative(),
     deleted: z.number().int().nonnegative(),
   })
-  .passthrough();
+  .loose();
 
 export const NangoSyncNotificationEventSchema = z
   .object({
@@ -100,13 +100,13 @@ export const NangoSyncNotificationEventSchema = z
     providerConfigKey: z.string(),
     connectionId: z.string(),
     responseResults: NangoSyncResponseResultsSchema,
-    modifiedAfter: z.string().datetime(),
+    modifiedAfter: z.iso.datetime(),
     success: z.boolean(),
-    queryTimeStamp: z.string().datetime().optional(),
-    startedAt: z.string().datetime().optional(),
-    failedAt: z.string().datetime().nullable().optional(),
+    queryTimeStamp: z.iso.datetime().optional(),
+    startedAt: z.iso.datetime().optional(),
+    failedAt: z.iso.datetime().nullable().optional(),
   })
-  .passthrough();
+  .loose();
 
 export const NotionDatabaseRecordSchema = z.object({
   id: z.string(),

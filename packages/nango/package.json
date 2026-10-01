@@ -36,7 +36,7 @@
     "@nangohq/node": "^0.69.50",
     "@relayfile/adapter-notion": "^0.1.10",
     "@relayfile/sdk": "^0.10.1",
-    "zod": "^3.25.76"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@agent-relay/sdk": "^6.0.7",
