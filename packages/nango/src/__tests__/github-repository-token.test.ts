@@ -181,3 +181,55 @@ describe("repository-scoped GitHub App token: workflows opt-in", () => {
     assert.equal(h.calls.length, 0);
   });
 });
+
+describe("repository-scoped GitHub App token: read-only access", () => {
+  const mintedRead = () => ({ ...minted(), permissions: { contents: "read", metadata: "read" } });
+  const readHarness = (extra: Record<string, unknown> = {}) =>
+    harness({ "/app/installations/41/access_tokens": mintedRead(), ...extra });
+
+  it("requests exactly contents and metadata read, and says so", async () => {
+    const h = readHarness();
+    const result = await mintGithubRepositoryToken(h.config, { ...input, access: "read" });
+    assert.equal(h.calls[2]!.init.body, JSON.stringify({ repositories: ["project"], permissions: { contents: "read", metadata: "read" } }));
+    assert.equal(result.access, "read");
+    assert.equal("workflows" in result, false);
+    assert.equal(h.calls.some((call) => call.init.method === "DELETE"), false);
+  });
+  it("keeps today's exact request and no access claim without the option", async () => {
+    const h = harness();
+    const result = await mintGithubRepositoryToken(h.config, input);
+    assert.equal(h.calls[2]!.init.body, JSON.stringify({ repositories: ["project"], permissions: { contents: "write", pull_requests: "write" } }));
+    assert.equal("access" in result, false);
+  });
+  for (const [name, permissions] of [
+    ["a write token", { contents: "write", pull_requests: "write", metadata: "read" }],
+    ["contents write", { contents: "write", metadata: "read" }],
+    ["pull_requests read", { contents: "read", metadata: "read", pull_requests: "read" }],
+    ["an extra permission", { contents: "read", metadata: "read", issues: "read" }],
+    ["no contents", { metadata: "read" }],
+    ["metadata write", { contents: "read", metadata: "write" }],
+  ] as const) it(`refuses and revokes ${name} when read was asked for`, async () => {
+    const h = readHarness({ "/app/installations/41/access_tokens": { ...minted(), permissions } });
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, access: "read" }), /token_authority_mismatch/);
+    assert.equal(h.calls.at(-1)!.init.method, "DELETE");
+  });
+  it("refuses a read token when write was asked for", async () => {
+    const h = readHarness();
+    await assert.rejects(mintGithubRepositoryToken(h.config, input), /token_authority_mismatch/);
+    assert.equal(h.calls.at(-1)!.init.method, "DELETE");
+  });
+  for (const [name, extra] of [
+    ["read with workflows", { access: "read", workflows: true }],
+    ["an unknown access value", { access: "write" }],
+    ["a non-string access", { access: true }],
+  ] as const) it(`rejects ${name} before credential retrieval`, async () => {
+    const h = harness();
+    await assert.rejects(mintGithubRepositoryToken(h.config, { ...input, ...(extra as object) }), /invalid_request/);
+    assert.equal(h.calls.length, 0);
+  });
+  it("allows read with workflows explicitly false", async () => {
+    const h = readHarness();
+    const result = await mintGithubRepositoryToken(h.config, { ...input, access: "read", workflows: false });
+    assert.equal(result.access, "read");
+  });
+});
