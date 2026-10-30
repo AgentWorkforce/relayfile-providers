@@ -19,6 +19,15 @@ export type GithubRepositoryTokenRequest = {
    * than was asked for.
    */
   workflows?: boolean;
+  /**
+   * `"read"` requests a read-only token: `contents: "read"` and
+   * `metadata: "read"`, with no `pull_requests` and nothing writable. It is
+   * verified exactly: a minted token carrying any other permission, or any
+   * write, is revoked and refused (`token_authority_mismatch`). Absent means
+   * today's contents/pull_requests write token. Combining it with
+   * `workflows: true` is `invalid_request`; so is any other value.
+   */
+  access?: "read";
 };
 
 export type GithubRepositoryToken = {
@@ -29,6 +38,13 @@ export type GithubRepositoryToken = {
   repositoryScoped: true;
   /** Present, and `true`, only when `workflows: true` was requested and verified. */
   workflows?: true;
+  /**
+   * Present, and `"read"`, only when `access: "read"` was requested and the
+   * minted token was verified to be read-only. A caller that asked for read
+   * must refuse a result without it: an older provider ignores the option and
+   * would return a write token.
+   */
+  access?: "read";
 };
 
 /** Stable failure codes; the message is always `GitHub repository token: <code>`. */
@@ -57,6 +73,8 @@ export class GithubRepositoryTokenError extends Error {
 // The default request is exactly this object; the opt-in adds one key.
 const permissions = { contents: "write", pull_requests: "write" } as const;
 const workflowPermissions = { ...permissions, workflows: "write" } as const;
+// Read-only: no pull_requests, nothing writable. GitHub always adds metadata.
+const readPermissions = { contents: "read", metadata: "read" } as const;
 const ownerCoordinate = /^[A-Za-z0-9][A-Za-z0-9_.-]{0,99}$/;
 const repositoryCoordinate = /^[A-Za-z0-9_.-]{1,100}$/;
 
@@ -121,7 +139,10 @@ export async function mintGithubRepositoryToken(
       !ownerCoordinate.test(input.owner) || !repositoryCoordinate.test(input.repo) || input.repo === "." || input.repo === ".." ||
       !/^[a-f0-9]{40}$/.test(input.baseSha) || !input.baseBranch ||
       (input.repositoryId !== undefined && (!Number.isSafeInteger(input.repositoryId) || input.repositoryId <= 0)) ||
-      (input.workflows !== undefined && typeof input.workflows !== "boolean")) {
+      (input.workflows !== undefined && typeof input.workflows !== "boolean") ||
+      (input.access !== undefined && input.access !== "read") ||
+      // Read-only and a workflows write are contradictory: refuse, never pick one.
+      (input.access === "read" && input.workflows === true)) {
     return fail("invalid_request");
   }
   const base = new URL(config.baseUrl ?? "https://api.nango.dev");
@@ -145,6 +166,8 @@ export async function mintGithubRepositoryToken(
     return fail("installation_mismatch");
   }
   const workflows = input.workflows === true;
+  const read = input.access === "read";
+  const requested: Record<string, string> = read ? readPermissions : workflows ? workflowPermissions : permissions;
   // GitHub either refuses (422) or silently drops a permission the
   // installation lacks. Check the installation's own grant first so a missing
   // "Workflows" App permission is named, and nothing is minted for it.
@@ -154,15 +177,24 @@ export async function mintGithubRepositoryToken(
   // Explicit repository and permissions: omitting either widens authority.
   const minted = await request(config, github(`/app/installations/${input.installationId}/access_tokens`), credentials.jwtToken, "POST", {
     ...(input.repositoryId === undefined ? { repositories: [input.repo] } : { repository_ids: [input.repositoryId] }),
-    permissions: workflows ? workflowPermissions : permissions,
+    permissions: requested,
   });
   if (typeof minted.token !== "string" || !minted.token) return fail("missing_token");
   try {
     const expires = typeof minted.expires_at === "string" ? Date.parse(minted.expires_at) : NaN;
     const granted = record(minted.permissions);
     const expected: readonly string[] = Object.keys(workflows ? workflowPermissions : permissions);
-    if (!Number.isFinite(expires) || expires <= Date.now() + 60_000 || expires > Date.now() + 3_660_000 ||
-        granted.contents !== "write" || granted.pull_requests !== "write" ||
+    if (!Number.isFinite(expires) || expires <= Date.now() + 60_000 || expires > Date.now() + 3_660_000) {
+      return fail("token_authority_mismatch");
+    }
+    if (read) {
+      // Exactly read: every granted permission must be one we asked for, at
+      // "read". A write anywhere, or pull_requests at all, is refused.
+      if (granted.contents !== "read" ||
+          Object.entries(granted).some(([key, value]) => !(Object.hasOwn(readPermissions, key) && value === "read"))) {
+        return fail("token_authority_mismatch");
+      }
+    } else if (granted.contents !== "write" || granted.pull_requests !== "write" ||
         Object.entries(granted).some(([key, value]) => !(expected.includes(key) || (key === "metadata" && value === "read")))) {
       return fail("token_authority_mismatch");
     }
@@ -181,7 +213,8 @@ export async function mintGithubRepositoryToken(
       return fail("base_moved");
     }
     return { token: minted.token, expiresAt: minted.expires_at as string, installationId: input.installationId,
-      repositoryId: repo.id as number, repositoryScoped: true, ...(workflows ? { workflows: true as const } : {}) };
+      repositoryId: repo.id as number, repositoryScoped: true, ...(workflows ? { workflows: true as const } : {}),
+      ...(read ? { access: "read" as const } : {}) };
   } catch (error) {
     try { await revokeGithubRepositoryToken(config, minted.token); }
     catch { return fail("validation_failed_cleanup_failed"); }
