@@ -5,7 +5,7 @@ import type {
   ComposioListResponse,
   ListAppsOptions,
   ListIntegrationsOptions,
-} from "./types";
+} from "./types.js";
 
 export async function listIntegrations(
   request: ComposioApiRequester,

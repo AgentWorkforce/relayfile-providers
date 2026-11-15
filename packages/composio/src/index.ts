@@ -1,7 +1,9 @@
+export { composioAuthorizationStatus, composioAuthMode } from "./connection-details.js";
+export type { ComposioAuthorizationStatus } from "./connection-details.js";
 export {
   ComposioProvider,
   createComposioProvider,
-} from "./composio-provider";
+} from "./composio-provider.js";
 export {
   DEFAULT_COMPOSIO_BASE_URL,
   buildComposioApiHeaders,
@@ -13,7 +15,7 @@ export {
   proxyThroughComposio,
   resolveComposioProviderConfig,
   resolveToolkitSlug,
-} from "./proxy";
+} from "./proxy.js";
 export {
   extractComposioConnectionId,
   extractComposioEventType,
@@ -31,7 +33,7 @@ export {
   parseComposioWebhookRequest,
   parseComposioWebhookSignature,
   verifyComposioWebhookSignature,
-} from "./webhook";
+} from "./webhook.js";
 export type {
   ComposioAction,
   ComposioActionLookupResult,
@@ -84,9 +86,9 @@ export type {
   ProxyResponseHeaders,
   ResolvedComposioProviderConfig,
   SubscribeTriggerOptions,
-} from "./types";
+} from "./types.js";
 export type {
   ParsedComposioWebhookRequest,
   ParsedComposioWebhookSignature,
   VerifyComposioWebhookSignatureOptions,
-} from "./webhook";
+} from "./webhook.js";

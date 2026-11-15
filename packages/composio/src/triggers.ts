@@ -1,4 +1,4 @@
-import { listConnectedAccounts } from "./accounts";
+import { listConnectedAccounts } from "./accounts.js";
 import type {
   ComposioApiRequester,
   ComposioListResponse,
@@ -8,7 +8,7 @@ import type {
   ListActiveSubscriptionsOptions,
   ListTriggersOptions,
   SubscribeTriggerOptions,
-} from "./types";
+} from "./types.js";
 
 export async function listTriggers(
   request: ComposioApiRequester,

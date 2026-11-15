@@ -1,3 +1,4 @@
+import { composioAuthorizationStatus } from "./connection-details.js";
 import type {
   ComposioActionLookupResult,
   ComposioProviderConfig,
@@ -7,7 +8,7 @@ import type {
   ProxyRequest,
   ProxyResponse,
   ResolvedComposioProviderConfig,
-} from "./types";
+} from "./types.js";
 
 export const DEFAULT_COMPOSIO_BASE_URL = "https://backend.composio.dev/api/v3";
 
@@ -31,7 +32,6 @@ const TOOLKIT_HOSTNAME_OVERRIDES: Readonly<Record<string, string>> = {
 };
 
 const COMMON_SUBDOMAINS = new Set(["api", "app", "graph", "graphql", "rest", "services", "www"]);
-const HEALTHY_ACCOUNT_STATUSES = new Set(["ACTIVE", "AUTHORIZED", "CONNECTED", "ENABLED", "READY", "SUCCESS"]);
 
 interface ComposioParameter {
   in: "header" | "query";
@@ -140,10 +140,7 @@ export async function checkComposioConnectionHealth(
     return false;
   }
 
-  const status = extractConnectedAccountStatus(payload);
-  const disabled = payload.is_disabled === true || payload.auth_config?.is_disabled === true;
-
-  return !disabled && status !== undefined && HEALTHY_ACCOUNT_STATUSES.has(status);
+  return composioAuthorizationStatus(payload as Record<string, unknown>) === "active";
 }
 
 /**
@@ -654,10 +651,6 @@ function mergeResponseHeaders(
   return merged;
 }
 
-function extractConnectedAccountStatus(payload: ComposioConnectedAccount): string | undefined {
-  const status = payload.status ?? payload.state?.val?.status;
-  return status?.trim().toUpperCase() || undefined;
-}
 
 function normalizeToolset(toolset?: ComposioToolset): ComposioToolset | undefined {
   const slug = toolset?.slug?.trim().toLowerCase();

@@ -1,5 +1,5 @@
-import { buildComposioApiHeaders } from "./proxy";
-import { ComposioApiError } from "./types";
+import { buildComposioApiHeaders } from "./proxy.js";
+import { ComposioApiError } from "./types.js";
 import type {
   ComposioApiQuery,
   ComposioApiQueryPrimitive,
@@ -7,7 +7,7 @@ import type {
   ComposioApiRequestOptions,
   JsonObject,
   ResolvedComposioProviderConfig,
-} from "./types";
+} from "./types.js";
 
 type SerializableBody = Exclude<RequestInit["body"], undefined>;
 

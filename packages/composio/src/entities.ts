@@ -1,5 +1,5 @@
-import { deleteConnectedAccount, listConnectedAccounts } from "./accounts";
-import { listActiveSubscriptions, unsubscribeTrigger } from "./triggers";
+import { deleteConnectedAccount, listConnectedAccounts } from "./accounts.js";
+import { listActiveSubscriptions, unsubscribeTrigger } from "./triggers.js";
 import type {
   ComposioApiRequester,
   ComposioConnectedAccount,
@@ -7,7 +7,7 @@ import type {
   ComposioEntityInput,
   ComposioListResponse,
   ComposioTriggerSubscription,
-} from "./types";
+} from "./types.js";
 
 export async function listEntities(
   request: ComposioApiRequester,

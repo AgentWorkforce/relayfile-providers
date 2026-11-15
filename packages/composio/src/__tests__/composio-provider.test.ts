@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ComposioProvider } from "../composio-provider";
-import * as barrel from "../index";
+import { ComposioProvider } from "../composio-provider.js";
+import * as barrel from "../index.js";
 import type { ProxyRequest } from "@relayfile/sdk";
 
 interface FetchCall {

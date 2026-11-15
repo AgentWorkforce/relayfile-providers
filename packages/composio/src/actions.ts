@@ -6,7 +6,7 @@ import type {
   ExecuteActionOptions,
   JsonObject,
   ListActionsOptions,
-} from "./types";
+} from "./types.js";
 
 export async function listActions(
   request: ComposioApiRequester,
