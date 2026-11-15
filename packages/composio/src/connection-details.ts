@@ -19,6 +19,6 @@ export function composioAuthorizationStatus(account: Record<string, unknown>): C
 const AUTH_MODES = new Set(["OAUTH2", "OAUTH1", "API_KEY", "BASIC", "APP", "JWT", "MCP_OAUTH2_GENERIC"]);
 /** Read only the documented scheme, never account.state.val credentials. */
 export function composioAuthMode(account: Record<string, unknown>): string | null {
-  const scheme = account.authScheme ?? record(account.auth_config)?.auth_scheme;
+  const scheme = account.authScheme ?? record(account.auth_config)?.auth_scheme ?? record(account.connectionData)?.authScheme;
   return typeof scheme === "string" && AUTH_MODES.has(scheme.toUpperCase()) ? scheme.toUpperCase() : null;
 }

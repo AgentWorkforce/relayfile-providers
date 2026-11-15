@@ -20,4 +20,6 @@ test("projects only recognized authentication kinds", () => {
   assert.equal(composioAuthMode({ authScheme: "private-token" }), null);
   assert.equal(composioAuthMode({ state: { val: { authScheme: "API_KEY", api_key: "private-token" } } }), null);
   assert.equal(composioAuthMode({ auth_config: [] }), null);
+  assert.equal(composioAuthMode({ connectionData: { authScheme: "OAUTH2", val: { api_key: "private-token" } } }), "OAUTH2");
+  assert.equal(composioAuthMode({ connectionData: { authScheme: "private-token", val: { authScheme: "API_KEY" } } }), null);
 });
