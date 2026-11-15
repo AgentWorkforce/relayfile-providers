@@ -5,7 +5,7 @@ import type {
   ComposioListResponse,
   InitiateConnectionOptions,
   ListConnectedAccountsOptions,
-} from "./types";
+} from "./types.js";
 
 export async function listConnectedAccounts(
   request: ComposioApiRequester,

@@ -3,24 +3,24 @@ import {
   getConnectedAccount,
   initiateConnection,
   listConnectedAccounts,
-} from "./accounts";
-import { executeAction, getAction, listActions } from "./actions";
-import { createComposioApiRequester } from "./client";
-import { createEntity, deleteEntity, getEntity, listEntities } from "./entities";
-import { getIntegration, listApps, listIntegrations } from "./integrations";
+} from "./accounts.js";
+import { executeAction, getAction, listActions } from "./actions.js";
+import { createComposioApiRequester } from "./client.js";
+import { createEntity, deleteEntity, getEntity, listEntities } from "./entities.js";
+import { getIntegration, listApps, listIntegrations } from "./integrations.js";
 import {
   checkComposioConnectionHealth,
   lookupActionForRequest,
   proxyThroughComposio,
   resolveComposioProviderConfig,
-} from "./proxy";
+} from "./proxy.js";
 import {
   listActiveSubscriptions,
   listTriggers,
   subscribeTrigger,
   unsubscribeTrigger,
-} from "./triggers";
-import { normalizeComposioWebhook } from "./webhook";
+} from "./triggers.js";
+import { normalizeComposioWebhook } from "./webhook.js";
 import type { ConnectionProvider } from "@relayfile/sdk";
 import type {
   ComposioAction,
@@ -51,7 +51,7 @@ import type {
   ProxyResponse,
   ResolvedComposioProviderConfig,
   SubscribeTriggerOptions,
-} from "./types";
+} from "./types.js";
 
 export class ComposioProvider implements ConnectionProvider {
   readonly name = "composio";

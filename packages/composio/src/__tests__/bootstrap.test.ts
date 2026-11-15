@@ -4,7 +4,7 @@ import {
   DEFAULT_COMPOSIO_BASE_URL,
   createComposioProvider,
   resolveComposioProviderConfig,
-} from "../index";
+} from "../index.js";
 
 test("resolveComposioProviderConfig applies normalized bootstrap defaults", () => {
   const resolved = resolveComposioProviderConfig({

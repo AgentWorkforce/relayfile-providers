@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { ComposioRequestHeaders, JsonObject, NormalizedWebhook } from "./types";
+import type { ComposioRequestHeaders, JsonObject, NormalizedWebhook } from "./types.js";
 
 const COMPOSIO_PROVIDER_NAME = "composio";
 
