@@ -27,6 +27,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Publishing workflow contract
+        run: npm run test:publish-workflow
+
       - name: Build
         run: npx turbo build
 

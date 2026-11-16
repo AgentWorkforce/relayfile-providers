@@ -68,7 +68,7 @@ jobs:
           set -euo pipefail
           mkdir -p "$GITHUB_WORKSPACE/fast-path-packs"
           # Same list as publish.yml's "all".
-          for pkg in nango composio pipedream clerk supabase n8n; do
+          for pkg in connection-health nango composio pipedream clerk supabase n8n; do
             (cd "packages/$pkg" && npm pack --pack-destination "$GITHUB_WORKSPACE/fast-path-packs")
           done
       - uses: actions/upload-artifact@v4

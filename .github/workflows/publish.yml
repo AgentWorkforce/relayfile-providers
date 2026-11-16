@@ -9,6 +9,7 @@ on:
         type: choice
         options:
           - all
+          - connection-health
           - nango
           - composio
           - pipedream
@@ -17,10 +18,11 @@ on:
           - n8n
         default: "all"
       version:
-        description: "Version bump type"
+        description: "Version bump type (current publishes the checked-in version)"
         required: true
         type: choice
         options:
+          - current
           - patch
           - minor
           - major
@@ -35,6 +37,11 @@ on:
           - next
           - beta
         default: "latest"
+      expected_integrity:
+        description: "Optional sha512 integrity of the reviewed artifact (one package only)"
+        required: false
+        type: string
+        default: ""
       dry_run:
         description: "Dry run (do not actually publish)"
         required: false
@@ -60,7 +67,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22.14.0"
+          node-version: "22.22.2"
           cache: npm
           registry-url: "https://registry.npmjs.org"
 
@@ -74,32 +81,60 @@ jobs:
 
       - name: Resolve packages to publish
         id: resolve
+        env:
+          PACKAGE: ${{ inputs.package }}
+          EXPECTED_INTEGRITY: ${{ inputs.expected_integrity }}
         run: |
-          if [ "${{ github.event.inputs.package }}" = "all" ]; then
-            echo "packages=nango composio pipedream clerk supabase n8n" >> "$GITHUB_OUTPUT"
+          if [ "$PACKAGE" = "all" ]; then
+            if [ -n "$EXPECTED_INTEGRITY" ]; then
+              echo "An artifact integrity requires selecting one package." >&2
+              exit 1
+            fi
+            echo "packages=connection-health nango composio pipedream clerk supabase n8n" >> "$GITHUB_OUTPUT"
           else
-            echo "packages=${{ github.event.inputs.package }}" >> "$GITHUB_OUTPUT"
+            case "$PACKAGE" in
+              connection-health|nango|composio|pipedream|clerk|supabase|n8n) ;;
+              *) echo "Unknown package." >&2; exit 1 ;;
+            esac
+            echo "packages=$PACKAGE" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Version & Publish
+      - name: Version, verify artifact & publish
+        env:
+          PACKAGES: ${{ steps.resolve.outputs.packages }}
+          VERSION: ${{ inputs.version }}
+          PUBLISH_TAG: ${{ inputs.tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          EXPECTED_INTEGRITY: ${{ inputs.expected_integrity }}
         run: |
-          for pkg in ${{ steps.resolve.outputs.packages }}; do
-            cd packages/$pkg
-            npm version ${{ github.event.inputs.version }} --no-git-tag-version
-
-            if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
-              echo "DRY RUN: $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
-              npm publish --dry-run --access public --tag ${{ github.event.inputs.tag }}
-            else
-              npm publish --access public --provenance --tag ${{ github.event.inputs.tag }}
-              echo "Published $(node -p "require('./package.json').name")@$(node -p "require('./package.json').version")"
+          for pkg in $PACKAGES; do
+            npm run test --prefix "packages/$pkg"
+            cd "packages/$pkg"
+            if [ "$VERSION" != "current" ]; then
+              npm version "$VERSION" --no-git-tag-version
             fi
 
+            # Pin the packer to reproduce artifacts reviewed on developers' machines.
+            # Publishing still uses npm 11 for the existing trusted-publisher OIDC flow.
+            export PACK_JSON="$RUNNER_TEMP/npm-pack-$pkg.json"
+            npx --yes --package=npm@10.9.7 -- npm pack --json --ignore-scripts > "$PACK_JSON"
+            archive=$(node -p "JSON.parse(require('fs').readFileSync(process.env.PACK_JSON, 'utf8'))[0].filename")
+            integrity=$(node -p "JSON.parse(require('fs').readFileSync(process.env.PACK_JSON, 'utf8'))[0].integrity")
+            if [ -n "$EXPECTED_INTEGRITY" ] && [ "$EXPECTED_INTEGRITY" != "$integrity" ]; then
+              echo "Packed artifact differs from the reviewed integrity; refusing publication." >&2
+              exit 1
+            fi
+            echo "Verified artifact: $pkg $integrity"
+            if [ "$DRY_RUN" = "true" ]; then
+              npm publish "$archive" --ignore-scripts --dry-run --access public --tag "$PUBLISH_TAG"
+            else
+              npm publish "$archive" --ignore-scripts --access public --provenance --tag "$PUBLISH_TAG"
+            fi
             cd ../..
           done
 
       - name: Commit version bumps
-        if: github.event.inputs.dry_run != 'true'
+        if: github.event.inputs.dry_run != 'true' && github.event.inputs.version != 'current'
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
