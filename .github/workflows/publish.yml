@@ -99,20 +99,9 @@ jobs:
             echo "packages=$PACKAGE" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Check first-publish credential availability
-        env:
-          NPM_BOOTSTRAP_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NPM_BOOTSTRAP_TOKEN" ]; then
-            echo "First-publish credential is configured for this repository."
-          else
-            echo "No first-publish credential is configured; publishing uses package-specific OIDC trust."
-          fi
-
       - name: Version, verify artifact & publish
         env:
           PACKAGES: ${{ steps.resolve.outputs.packages }}
-          NPM_BOOTSTRAP_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ inputs.version }}
           PUBLISH_TAG: ${{ inputs.tag }}
           DRY_RUN: ${{ inputs.dry_run }}
@@ -138,10 +127,6 @@ jobs:
             echo "Verified artifact: $pkg $integrity"
             if [ "$DRY_RUN" = "true" ]; then
               npm publish "$archive" --ignore-scripts --dry-run --access public --tag "$PUBLISH_TAG"
-            elif [ -n "$NPM_BOOTSTRAP_TOKEN" ] && [ "$VERSION" = "current" ] && [ "$pkg" = "connection-health" ] && [ "$(node -p "require('./package.json').version")" = "0.1.0" ]; then
-              # Initial creation cannot rely on this new package's own OIDC trust.
-              # Only the publish subprocess receives registry authentication.
-              NODE_AUTH_TOKEN="$NPM_BOOTSTRAP_TOKEN" npm publish "$archive" --ignore-scripts --access public --provenance --tag "$PUBLISH_TAG"
             else
               npm publish "$archive" --ignore-scripts --access public --provenance --tag "$PUBLISH_TAG"
             fi
