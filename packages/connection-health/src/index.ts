@@ -108,7 +108,7 @@ function checkFor(provider: string, authMode?: string): Check | null {
     return {
       url: "https://console.neon.tech/api/v2/users/me",
       method: "GET",
-      valid: (b) => ["string", "number"].includes(typeof object(b.user).id),
+      valid: (b) => typeof b.id === "string" && typeof b.email === "string",
     };
   if (p === "reddit")
     return {
@@ -155,7 +155,7 @@ export async function verifyProviderAuthorization(input: {
     const raw = (await response.json()) as unknown;
     const body = object(raw);
     if (
-      input.provider.startsWith("slack") &&
+      input.provider.toLowerCase().replace(/-relay$/, "") === "slack" &&
       [
         "invalid_auth",
         "token_revoked",
@@ -191,7 +191,9 @@ export function credentialTransport(input: {
       method: request.method,
       redirect: "error",
       headers: {
-        Authorization: `${input.tokenType?.toLowerCase() === "api_key" ? "Bearer" : (input.tokenType ?? "Bearer")} ${input.accessToken}`,
+        Authorization: target.hostname === "api.linear.app" && input.tokenType?.toLowerCase() === "api_key"
+          ? input.accessToken
+          : `${input.tokenType?.toLowerCase() === "api_key" ? "Bearer" : (input.tokenType ?? "Bearer")} ${input.accessToken}`,
         Accept: "application/json",
         "Content-Type": "application/json",
         "Notion-Version": "2022-06-28",

@@ -236,7 +236,32 @@ test('canonical provider selection verifies a private Nango template without usi
  const health=await verifyNangoAuthorization({secretKey:'secret',provider:'neon',connectionId:'a',providerConfigKey:'neon-relay',fetch:async(url,init)=>{
   urls.push(String(url));
   if(urls.length === 1) return json({connection_id:'a',provider_config_key:'neon-relay',provider:'private-api-bearer',credentials:{type:'API_KEY'},errors:[]});
-  assert.equal(new Headers(init?.headers).get('Base-Url-Override'),'https://console.neon.tech');return json({user:{id:'neon-user'}});
+  assert.equal(new Headers(init?.headers).get('Base-Url-Override'),'https://console.neon.tech');return json({id:'neon-user',email:'bot@example.test'});
  }});
  assert.equal(health.authorizationStatus,'active');
+});
+test('Linear personal keys use raw authorization while OAuth uses Bearer',async()=>{
+ for(const [tokenType,expected] of [['api_key','lin_api_secret'],['Bearer','Bearer lin_api_secret']] as const){
+  await credentialTransport({accessToken:'lin_api_secret',tokenType,fetch:async(_url,init)=>{
+   assert.equal(new Headers(init?.headers).get('Authorization'),expected);return json({});
+  }})({url:'https://api.linear.app/graphql',method:'POST'});
+ }
+});
+test('Slack credential rejection is recognized for all accepted provider spellings',async()=>{
+ for(const provider of ['slack','Slack','SLACK','slack-relay']){
+  assert.equal((await verifyProviderAuthorization({provider,transport:async()=>json({ok:false,error:'token_revoked'})})).authorizationStatus,'inactive');
+ }
+});
+test('Refresh deduplicates a timed-out probe until its abort-ignoring transport ends',async()=>{
+ const queue=new AuthorizationProbeQueue({concurrency:2,networkMs:10,queueMs:100,maxPending:10});
+ let release!: (health: Awaited<ReturnType<typeof verifyProviderAuthorization>>) => void;
+ let calls=0;
+ const lookup=()=>{calls++;return new Promise<Awaited<ReturnType<typeof verifyProviderAuthorization>>>(r=>{release=r;});};
+ const first=queue.probe('same',lookup);
+ assert.equal((await first).authorizationReason,'check_timed_out');
+ assert.equal(queue.probe('same',lookup),first);assert.equal(calls,1);
+ release({upstreamConnected:true,authorizationStatus:'active',authorizationReason:'provider_verified',authorizationCheckedAt:new Date().toISOString()});
+ await new Promise(resolve=>setTimeout(resolve,0));
+ const retried=await queue.probe('same',async()=>({upstreamConnected:true,authorizationStatus:'active',authorizationReason:'provider_verified',authorizationCheckedAt:new Date().toISOString()}));
+ assert.equal(retried.authorizationStatus,'active');
 });

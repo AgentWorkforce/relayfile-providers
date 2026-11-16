@@ -38,7 +38,7 @@ export class AuthorizationProbeQueue {
       if (finished) return;
       finished = true;
       clearTimeout(timer);
-      this.pending.delete(key);
+      if (!started) this.pending.delete(key);
       if (!started) this.waiting = this.waiting.filter((item) => item !== run);
       settle(health);
     };
@@ -60,6 +60,7 @@ export class AuthorizationProbeQueue {
         .then(finish, () => finish(unknown("provider_unavailable")))
         .finally(() => {
           // An abort-ignoring transport retains its slot until it actually ends.
+          this.pending.delete(key);
           this.active--;
           this.drain();
         });
