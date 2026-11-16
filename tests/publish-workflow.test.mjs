@@ -16,10 +16,11 @@ function runStep(name,overrides={}){
  const dir=mkdtempSync(join(tmpdir(),'relayfile-publish-contract-'));
  try{
   const bin=join(dir,'bin');mkdirSync(bin);mkdirSync(join(dir,'packages/connection-health'),{recursive:true});
+  writeFileSync(join(dir,'packages/connection-health/package.json'),JSON.stringify({name:'@relayfile/connection-health',version:'0.1.0'}));
   const log=join(dir,'calls.jsonl');writeFileSync(log,'');
-  writeFileSync(join(bin,'npm'),`#!/usr/bin/env node\nrequire('node:fs').appendFileSync(process.env.CALLS,JSON.stringify(process.argv.slice(2))+'\\n');\n`,{mode:0o755});
+  writeFileSync(join(bin,'npm'),`#!/usr/bin/env node\nrequire('node:fs').appendFileSync(process.env.CALLS,JSON.stringify([...process.argv.slice(2),...(process.env.NODE_AUTH_TOKEN ? ['registry-auth-configured'] : [])])+'\\n');\n`,{mode:0o755});
   writeFileSync(join(bin,'npx'),`#!/usr/bin/env node\nconsole.log(JSON.stringify([{filename:'reviewed.tgz',integrity:'sha512-reviewed'}]));\n`,{mode:0o755});
-  const result=spawnSync('bash',['-e','-c',step(name)],{cwd:dir,encoding:'utf8',env:{...process.env,PATH:`${bin}:${process.env.PATH}`,CALLS:log,RUNNER_TEMP:dir,GITHUB_OUTPUT:join(dir,'output'),PACKAGES:'connection-health',VERSION:'current',PUBLISH_TAG:'latest',DRY_RUN:'false',EXPECTED_INTEGRITY:'sha512-reviewed',...overrides}});
+  const result=spawnSync('bash',['-e','-c',step(name)],{cwd:dir,encoding:'utf8',env:{...process.env,PATH:`${bin}:${process.env.PATH}`,CALLS:log,RUNNER_TEMP:dir,GITHUB_OUTPUT:join(dir,'output'),PACKAGES:'connection-health',VERSION:'current',PUBLISH_TAG:'latest',DRY_RUN:'false',EXPECTED_INTEGRITY:'sha512-reviewed',NODE_AUTH_TOKEN:'',NPM_BOOTSTRAP_TOKEN:'',...overrides}});
   return {...result,calls:readFileSync(log,'utf8').trim().split('\n').filter(Boolean).map(JSON.parse)};
  }finally{rmSync(dir,{recursive:true,force:true});}
 }
@@ -42,4 +43,15 @@ test('one integrity cannot accidentally authorize publishing every package',()=>
 });
 test('package selection rejects shell input and unknown directories',()=>{
  const r=runStep('Resolve packages to publish',{PACKAGE:'connection-health; echo unexpected'});assert.notEqual(r.status,0);assert.match(r.stderr,/Unknown package/);
+});
+
+test('a configured bootstrap credential reaches only the initial publish subprocess',()=>{
+ const r=runStep('Version, verify artifact & publish',{NPM_BOOTSTRAP_TOKEN:'test-only-sentinel'});assert.equal(r.status,0,r.stderr);
+ const authenticated=r.calls.filter(args=>args.includes('registry-auth-configured'));
+ assert.equal(authenticated.length,1);assert.equal(authenticated[0][0],'publish');
+ assert.equal(JSON.stringify(r.calls).includes('test-only-sentinel'),false);
+});
+test('bootstrap credentials do not replace OIDC on version-bumping releases',()=>{
+ const r=runStep('Version, verify artifact & publish',{VERSION:'patch',NPM_BOOTSTRAP_TOKEN:'test-only-sentinel'});assert.equal(r.status,0,r.stderr);
+ assert.equal(r.calls.some(args=>args.includes('registry-auth-configured')),false);
 });
