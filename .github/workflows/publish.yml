@@ -99,6 +99,16 @@ jobs:
             echo "packages=$PACKAGE" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check first-publish credential availability
+        env:
+          NPM_BOOTSTRAP_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_BOOTSTRAP_TOKEN" ]; then
+            echo "First-publish credential is configured for this repository."
+          else
+            echo "No first-publish credential is configured; publishing uses package-specific OIDC trust."
+          fi
+
       - name: Version, verify artifact & publish
         env:
           PACKAGES: ${{ steps.resolve.outputs.packages }}
