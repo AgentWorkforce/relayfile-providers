@@ -104,10 +104,47 @@ test("native transport cannot leak credentials through redirects", async () => {
   await credentialTransport({
     accessToken: "secret",
     fetch: async (_url, init) => {
-      assert.equal(init?.redirect, "error");
+      assert.equal(init?.redirect, "manual");
       return json({});
     },
   })({ url: "https://gitlab.com/api/v4/user", method: "GET" });
+});
+test("native redirects are refused without following the destination", async () => {
+  for (const status of [301, 302, 303, 307, 308]) {
+    let calls = 0;
+    const transport = credentialTransport({
+      accessToken: "secret-sentinel",
+      fetch: async (url, init) => {
+        calls++;
+        assert.equal(String(url), "https://gitlab.com/api/v4/user");
+        assert.equal(init?.redirect, "manual");
+        return new Response(null, { status, headers: { Location: "https://redirect.invalid/" } });
+      },
+    });
+    await assert.rejects(transport({ url: "https://gitlab.com/api/v4/user", method: "GET" }), /refused a redirect/);
+    assert.equal(calls, 1);
+  }
+});
+test("Nango connection and proxy redirects fail closed at their respective stages", async () => {
+  for (const redirectStage of [1, 2]) {
+    let calls = 0;
+    const health = await verifyNangoAuthorization({
+      secretKey: "secret-sentinel", connectionId: "app-1", providerConfigKey: "github-relay", provider: "github",
+      fetch: async (url, init) => {
+        calls++;
+        assert.equal(new URL(String(url)).origin, "https://api.nango.dev");
+        assert.equal(init?.redirect, "manual");
+        return calls === redirectStage
+          ? new Response(null, { status: 302, headers: { Location: "https://redirect.invalid/" } })
+          : json({ connection_id: "app-1", provider_config_key: "github-relay", provider: "github", credentials: { type: "APP" } });
+      },
+    });
+    assert.equal(calls, redirectStage);
+    assert.equal(health.authorizationStatus, "unknown");
+    assert.equal(health.authorizationReason, redirectStage === 1 ? "backend_unavailable" : "provider_unavailable");
+    assert(!JSON.stringify(health).includes("secret-sentinel"));
+    assert(!JSON.stringify(health).includes("redirect.invalid"));
+  }
 });
 test("bounded queue gives later rows a full network budget and deduplicates while running", async () => {
   const queue = new AuthorizationProbeQueue({
@@ -191,7 +228,7 @@ test("custom Nango host is used for connection and proxy requests without follow
     providerConfigKey: "gitlab",
     fetch: async (url, init) => {
       urls.push(String(url));
-      assert.equal(init?.redirect, "error");
+      assert.equal(init?.redirect, "manual");
       return urls.length === 1
         ? json({
             connection_id: "a",

@@ -18,6 +18,21 @@ type Check = AuthorizationRequest & {
   arrayResponse?: boolean;
   valid: (body: Record<string, unknown>) => boolean;
 };
+/** Workers supports manual/follow only. Refuse redirects without forwarding credentials. */
+async function requestWithoutRedirects(
+  fetchImpl: typeof fetch | undefined,
+  url: string | URL,
+  init: RequestInit,
+): Promise<Response> {
+  const request = { ...init, redirect: "manual" as const };
+  const response = fetchImpl
+    ? await fetchImpl(url, request)
+    : await globalThis.fetch(url, request);
+  if (response.status >= 300 && response.status < 400) {
+    throw new Error("Authorization check refused a redirect.");
+  }
+  return response;
+}
 const object = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -187,9 +202,8 @@ export function credentialTransport(input: {
     const target = new URL(request.url);
     if (target.hostname === "api.telegram.org")
       target.pathname = `/bot${input.accessToken}/getMe`;
-    return (input.fetch ?? fetch)(target, {
+    return requestWithoutRedirects(input.fetch, target, {
       method: request.method,
-      redirect: "error",
       headers: {
         Authorization: target.hostname === "api.linear.app" && input.tokenType?.toLowerCase() === "api_key"
           ? input.accessToken
@@ -218,7 +232,7 @@ export async function verifyNangoAuthorization(input: {
   signal?: AbortSignal;
   fetch?: typeof fetch;
 }): Promise<AuthorizationHealth> {
-  const fetchImpl = input.fetch ?? fetch;
+  const fetchImpl = input.fetch;
   const origin = (input.baseUrl ?? "https://api.nango.dev").replace(/\/+$/, "");
   const headers = {
     Authorization: `Bearer ${input.secretKey}`,
@@ -232,9 +246,8 @@ export async function verifyNangoAuthorization(input: {
       origin,
     );
     url.searchParams.set("provider_config_key", input.providerConfigKey);
-    const response = await fetchImpl(url, {
+    const response = await requestWithoutRedirects(fetchImpl, url, {
       headers,
-      redirect: "error",
       ...(input.signal ? { signal: input.signal } : {}),
     });
     // Missing is definitive only in the caller's explicitly selected backend environment.
@@ -275,9 +288,8 @@ export async function verifyNangoAuthorization(input: {
           `/proxy${target.pathname}${target.search}`,
           origin,
         );
-        return fetchImpl(proxy, {
+        return requestWithoutRedirects(fetchImpl, proxy, {
           method: request.method,
-          redirect: "error",
           headers: {
             ...headers,
             ...(target.hostname === "api.telegram.org"
