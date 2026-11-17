@@ -146,6 +146,40 @@ test("Nango connection and proxy redirects fail closed at their respective stage
     assert(!JSON.stringify(health).includes("redirect.invalid"));
   }
 });
+test("default transports preserve the global receiver and observe replaced global fetch", async () => {
+  const original = globalThis.fetch;
+  const calls: string[] = [];
+  function replacement(label: string): typeof fetch {
+    return async function (this: typeof globalThis, url, init) {
+      assert.equal(this, globalThis);
+      assert.equal(init?.redirect, "manual");
+      const path = new URL(String(url)).pathname;
+      calls.push(`${label}:${path}`);
+      return path.startsWith("/connections/")
+        ? json({ connection_id: "app-1", provider_config_key: "github-relay", provider: "github", credentials: { type: "APP" } })
+        : path.startsWith("/proxy/")
+          ? json({ total_count: 0, repositories: [] })
+          : json({ id: 1, login: "fixture-user" });
+    };
+  }
+  try {
+    globalThis.fetch = replacement("first");
+    const transport = credentialTransport({ accessToken: "secret-sentinel" });
+    for (const label of ["first", "second"]) {
+      globalThis.fetch = replacement(label);
+      await transport({ url: "https://native.invalid/user", method: "GET" });
+      const health = await verifyNangoAuthorization({
+        secretKey: "secret-sentinel", baseUrl: "https://nango.invalid",
+        connectionId: "app-1", providerConfigKey: "github-relay", provider: "github",
+      });
+      assert.equal(health.authorizationStatus, "active");
+    }
+    assert.deepEqual(calls, ["first:/user", "first:/connections/app-1", "first:/proxy/installation/repositories",
+      "second:/user", "second:/connections/app-1", "second:/proxy/installation/repositories"]);
+  } finally {
+    globalThis.fetch = original;
+  }
+});
 test("bounded queue gives later rows a full network budget and deduplicates while running", async () => {
   const queue = new AuthorizationProbeQueue({
     concurrency: 2,
