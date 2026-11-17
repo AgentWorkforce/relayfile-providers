@@ -104,10 +104,81 @@ test("native transport cannot leak credentials through redirects", async () => {
   await credentialTransport({
     accessToken: "secret",
     fetch: async (_url, init) => {
-      assert.equal(init?.redirect, "error");
+      assert.equal(init?.redirect, "manual");
       return json({});
     },
   })({ url: "https://gitlab.com/api/v4/user", method: "GET" });
+});
+test("native redirects are refused without following the destination", async () => {
+  for (const status of [301, 302, 303, 307, 308]) {
+    let calls = 0;
+    const transport = credentialTransport({
+      accessToken: "secret-sentinel",
+      fetch: async (url, init) => {
+        calls++;
+        assert.equal(String(url), "https://gitlab.com/api/v4/user");
+        assert.equal(init?.redirect, "manual");
+        return new Response(null, { status, headers: { Location: "https://redirect.invalid/" } });
+      },
+    });
+    await assert.rejects(transport({ url: "https://gitlab.com/api/v4/user", method: "GET" }), /refused a redirect/);
+    assert.equal(calls, 1);
+  }
+});
+test("Nango connection and proxy redirects fail closed at their respective stages", async () => {
+  for (const redirectStage of [1, 2]) {
+    let calls = 0;
+    const health = await verifyNangoAuthorization({
+      secretKey: "secret-sentinel", connectionId: "app-1", providerConfigKey: "github-relay", provider: "github",
+      fetch: async (url, init) => {
+        calls++;
+        assert.equal(new URL(String(url)).origin, "https://api.nango.dev");
+        assert.equal(init?.redirect, "manual");
+        return calls === redirectStage
+          ? new Response(null, { status: 302, headers: { Location: "https://redirect.invalid/" } })
+          : json({ connection_id: "app-1", provider_config_key: "github-relay", provider: "github", credentials: { type: "APP" } });
+      },
+    });
+    assert.equal(calls, redirectStage);
+    assert.equal(health.authorizationStatus, "unknown");
+    assert.equal(health.authorizationReason, redirectStage === 1 ? "backend_unavailable" : "provider_unavailable");
+    assert(!JSON.stringify(health).includes("secret-sentinel"));
+    assert(!JSON.stringify(health).includes("redirect.invalid"));
+  }
+});
+test("default transports preserve the global receiver and observe replaced global fetch", async () => {
+  const original = globalThis.fetch;
+  const calls: string[] = [];
+  function replacement(label: string): typeof fetch {
+    return async function (this: typeof globalThis, url, init) {
+      assert.equal(this, globalThis);
+      assert.equal(init?.redirect, "manual");
+      const path = new URL(String(url)).pathname;
+      calls.push(`${label}:${path}`);
+      return path.startsWith("/connections/")
+        ? json({ connection_id: "app-1", provider_config_key: "github-relay", provider: "github", credentials: { type: "APP" } })
+        : path.startsWith("/proxy/")
+          ? json({ total_count: 0, repositories: [] })
+          : json({ id: 1, login: "fixture-user" });
+    };
+  }
+  try {
+    globalThis.fetch = replacement("first");
+    const transport = credentialTransport({ accessToken: "secret-sentinel" });
+    for (const label of ["first", "second"]) {
+      globalThis.fetch = replacement(label);
+      await transport({ url: "https://native.invalid/user", method: "GET" });
+      const health = await verifyNangoAuthorization({
+        secretKey: "secret-sentinel", baseUrl: "https://nango.invalid",
+        connectionId: "app-1", providerConfigKey: "github-relay", provider: "github",
+      });
+      assert.equal(health.authorizationStatus, "active");
+    }
+    assert.deepEqual(calls, ["first:/user", "first:/connections/app-1", "first:/proxy/installation/repositories",
+      "second:/user", "second:/connections/app-1", "second:/proxy/installation/repositories"]);
+  } finally {
+    globalThis.fetch = original;
+  }
 });
 test("bounded queue gives later rows a full network budget and deduplicates while running", async () => {
   const queue = new AuthorizationProbeQueue({
@@ -191,7 +262,7 @@ test("custom Nango host is used for connection and proxy requests without follow
     providerConfigKey: "gitlab",
     fetch: async (url, init) => {
       urls.push(String(url));
-      assert.equal(init?.redirect, "error");
+      assert.equal(init?.redirect, "manual");
       return urls.length === 1
         ? json({
             connection_id: "a",

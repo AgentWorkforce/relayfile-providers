@@ -18,6 +18,8 @@ a successful authorization check. Nango's optional status flags are not required
 unknown (the check may lack scope), as do throttling, transport failures,
 unexpected responses and unsupported providers. Provider response bodies and
 credentials are never returned in the health result. Redirects are refused.
+Transports use manual redirect handling and reject every 3xx response, preserving
+credential isolation in both Node.js and Cloudflare Workers.
 
 `AuthorizationProbeQueue` bounds concurrency at eight, pending work at 256,
 queue wait at 30 seconds and each running probe at five seconds. Timed out
